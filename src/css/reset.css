@@ -1,0 +1,22 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+img, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, select, textarea {
+  font: inherit;
+}
