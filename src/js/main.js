@@ -1,4 +1,4 @@
-import { PLANETS, SUN } from './data/planets.js';
+import { PLANETS, STAR } from './data/planets.js';
 import { toJ2000Century } from './physics/epoch.js';
 import { createCamera, fitSolarSystem } from './render/camera.js';
 import { drawAllOrbits } from './render/orbits.js';
@@ -33,12 +33,12 @@ function resize() {
 function drawSol() {
   const cx = cam.originX;
   const cy = cam.originY;
-  const r  = Math.max(4, SUN.radiusPx);
+  const r  = Math.max(4, STAR.radiusPx);
 
   ctx.save();
   const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 2.5);
-  grad.addColorStop(0,   SUN.color);
-  grad.addColorStop(0.4, SUN.color);
+  grad.addColorStop(0,   STAR.color);
+  grad.addColorStop(0.4, STAR.color);
   grad.addColorStop(1,   'transparent');
   ctx.fillStyle = grad;
   ctx.beginPath();
