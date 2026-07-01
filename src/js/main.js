@@ -1,19 +1,33 @@
 import { PLANETS, STAR } from './data/planets.js';
 import { toJ2000Century } from './physics/epoch.js';
+import { planetPosition } from './physics/kepler.js';
+import { solveBrachistochrone, distanceAU } from './physics/trajectory.js';
 import { createCamera, fitSolarSystem } from './render/camera.js';
 import { drawAllOrbits } from './render/orbits.js';
 import { drawAllPlanets, hitTestPlanet } from './render/planets.js';
 import { initDatePicker } from './ui/datepicker.js';
 import { initControls, initZoomButtons } from './ui/controls.js';
+import { renderRelativity } from './ui/relativity.js';
 
 const canvas = document.getElementById('solar-system');
 const ctx    = canvas.getContext('2d');
 
-// cam is created once and mutated in place so all modules share the same ref
 const cam = createCamera(canvas.clientWidth || 800, canvas.clientHeight || 600);
 
 let hoveredPlanet = null;
-let T = toJ2000Century(new Date());
+let T             = toJ2000Century(new Date());
+let previewAccelG = 1;
+
+const earth = PLANETS.find(p => p.name === 'Earth');
+const mars  = PLANETS.find(p => p.name === 'Mars');
+
+function updateRelativity() {
+  const posEarth = planetPosition(earth, T);
+  const posMars  = planetPosition(mars, T);
+  const dist     = distanceAU(posEarth, posMars);
+  const result   = solveBrachistochrone(dist, previewAccelG);
+  renderRelativity(result, 'Earth → Mars', previewAccelG);
+}
 
 function resize() {
   const container = canvas.parentElement;
@@ -27,10 +41,7 @@ function resize() {
   canvas.style.height = h + 'px';
 
   ctx.scale(dpr, dpr);
-
-  // Fit the existing cam object rather than replacing it
   fitSolarSystem(cam, w, h);
-
   draw();
 }
 
@@ -71,6 +82,7 @@ initZoomButtons(canvas, cam, draw);
 initDatePicker(date => {
   T = toJ2000Century(date);
   draw();
+  updateRelativity();
 });
 
 // ── Hover ─────────────────────────────────────────────────────────────────────
@@ -97,3 +109,4 @@ canvas.addEventListener('mouseleave', () => {
 
 window.addEventListener('resize', resize);
 resize();
+updateRelativity();
