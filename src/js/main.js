@@ -4,11 +4,14 @@ import { createCamera, fitSolarSystem } from './render/camera.js';
 import { drawAllOrbits } from './render/orbits.js';
 import { drawAllPlanets, hitTestPlanet } from './render/planets.js';
 import { initDatePicker } from './ui/datepicker.js';
+import { initControls, initZoomButtons } from './ui/controls.js';
 
 const canvas = document.getElementById('solar-system');
 const ctx    = canvas.getContext('2d');
 
-let cam;
+// cam is created once and mutated in place so all modules share the same ref
+const cam = createCamera(canvas.clientWidth || 800, canvas.clientHeight || 600);
+
 let hoveredPlanet = null;
 let T = toJ2000Century(new Date());
 
@@ -25,7 +28,7 @@ function resize() {
 
   ctx.scale(dpr, dpr);
 
-  cam = createCamera(w, h);
+  // Fit the existing cam object rather than replacing it
   fitSolarSystem(cam, w, h);
 
   draw();
@@ -57,6 +60,11 @@ function draw() {
   drawStar();
   drawAllPlanets(ctx, cam, PLANETS, T, hoveredPlanet);
 }
+
+// ── Zoom / pan controls ───────────────────────────────────────────────────────
+
+initControls(canvas, cam, draw);
+initZoomButtons(canvas, cam, draw);
 
 // ── Date picker ───────────────────────────────────────────────────────────────
 
