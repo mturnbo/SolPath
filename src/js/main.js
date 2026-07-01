@@ -1,10 +1,12 @@
 import { PLANETS, STAR } from './data/planets.js';
 import { toJ2000Century } from './physics/epoch.js';
-import { planetPosition } from './physics/kepler.js';
 import { solveBrachistochrone, distanceAU } from './physics/trajectory.js';
+import { planetPosition } from './physics/kepler.js';
+import { computeMission } from './physics/mission.js';
 import { createCamera, fitSolarSystem } from './render/camera.js';
 import { drawAllOrbits } from './render/orbits.js';
 import { drawAllPlanets, hitTestPlanet } from './render/planets.js';
+import { drawTrajectory, drawDepartureMarker } from './render/trajectory.js';
 import { initDatePicker } from './ui/datepicker.js';
 import { initControls, initZoomButtons } from './ui/controls.js';
 import { renderRelativity } from './ui/relativity.js';
@@ -14,20 +16,24 @@ const ctx    = canvas.getContext('2d');
 
 const cam = createCamera(canvas.clientWidth || 800, canvas.clientHeight || 600);
 
-let hoveredPlanet = null;
-let T             = toJ2000Century(new Date());
-let previewAccelG = 1;
+let hoveredPlanet  = null;
+let currentDate    = new Date();
+let T              = toJ2000Century(currentDate);
+let previewMission = null;
 
 const earth = PLANETS.find(p => p.name === 'Earth');
 const mars  = PLANETS.find(p => p.name === 'Mars');
 
-function updateRelativity() {
-  const posEarth = planetPosition(earth, T);
-  const posMars  = planetPosition(mars, T);
-  const dist     = distanceAU(posEarth, posMars);
-  const result   = solveBrachistochrone(dist, previewAccelG);
-  renderRelativity(result, 'Earth → Mars', previewAccelG);
+// ── Mission computation ───────────────────────────────────────────────────────
+
+function updateMission() {
+  previewMission = computeMission(earth, mars, currentDate, 1);
+
+  const { trajectory } = previewMission;
+  renderRelativity(trajectory, 'Earth → Mars', 1);
 }
+
+// ── Rendering ─────────────────────────────────────────────────────────────────
 
 function resize() {
   const container = canvas.parentElement;
@@ -70,6 +76,11 @@ function draw() {
   drawAllOrbits(ctx, cam, PLANETS, T);
   drawStar();
   drawAllPlanets(ctx, cam, PLANETS, T, hoveredPlanet);
+
+  if (previewMission) {
+    drawTrajectory(ctx, cam, previewMission);
+    drawDepartureMarker(ctx, cam, previewMission);
+  }
 }
 
 // ── Zoom / pan controls ───────────────────────────────────────────────────────
@@ -80,9 +91,10 @@ initZoomButtons(canvas, cam, draw);
 // ── Date picker ───────────────────────────────────────────────────────────────
 
 initDatePicker(date => {
-  T = toJ2000Century(date);
+  currentDate = date;
+  T           = toJ2000Century(date);
+  updateMission();
   draw();
-  updateRelativity();
 });
 
 // ── Hover ─────────────────────────────────────────────────────────────────────
@@ -109,4 +121,4 @@ canvas.addEventListener('mouseleave', () => {
 
 window.addEventListener('resize', resize);
 resize();
-updateRelativity();
+updateMission();
