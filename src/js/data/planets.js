@@ -124,9 +124,9 @@ export const PLANETS = [
 ];
 
 /**
- * The Sun — fixed at the origin, included here for rendering convenience.
+ * Star — fixed at the origin, included here for rendering convenience.
  */
-export const SUN = {
+export const STAR = {
   name: 'Sol',
   color: '#ffe066',
   radiusPx: 10,
