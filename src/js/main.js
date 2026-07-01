@@ -2,11 +2,13 @@ import { PLANETS, SUN } from './data/planets.js';
 import { toJ2000Century } from './physics/epoch.js';
 import { createCamera, fitSolarSystem } from './render/camera.js';
 import { drawAllOrbits } from './render/orbits.js';
+import { drawAllPlanets, hitTestPlanet } from './render/planets.js';
 
 const canvas = document.getElementById('solar-system');
 const ctx    = canvas.getContext('2d');
 
 let cam;
+let hoveredPlanet = null;
 const T = toJ2000Century(new Date());
 
 function resize() {
@@ -52,7 +54,30 @@ function draw() {
 
   drawAllOrbits(ctx, cam, PLANETS, T);
   drawSol();
+  drawAllPlanets(ctx, cam, PLANETS, T, hoveredPlanet);
 }
+
+// ── Hover ─────────────────────────────────────────────────────────────────────
+
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  const sx = e.clientX - rect.left;
+  const sy = e.clientY - rect.top;
+  const hit = hitTestPlanet(cam, PLANETS, T, sx, sy);
+
+  if (hit !== hoveredPlanet) {
+    hoveredPlanet = hit;
+    canvas.style.cursor = hit ? 'pointer' : 'crosshair';
+    draw();
+  }
+});
+
+canvas.addEventListener('mouseleave', () => {
+  if (hoveredPlanet !== null) {
+    hoveredPlanet = null;
+    draw();
+  }
+});
 
 window.addEventListener('resize', resize);
 resize();
