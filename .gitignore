@@ -1,0 +1,47 @@
+### Misc ###
+.DS_Store
+/tmp
+/out-tsc
+
+### ENV ###
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+### IDE ###
+.idea/
+.run/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+### Dependencies ###
+node_modules
+yarn.lock
+package-lock.json
+/.pnp
+.pnp.js
+
+### Build ###
+build/
+dist/
+
+### Test ###
+__snapshots__/
+test/reports/
+/coverage
+
+### Logs ###
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+### Cache ###
+.eslintcache
+.angular
