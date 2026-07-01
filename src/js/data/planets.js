@@ -127,7 +127,7 @@ export const PLANETS = [
  * The Sun — fixed at the origin, included here for rendering convenience.
  */
 export const SUN = {
-  name: 'Sun',
+  name: 'Sol',
   color: '#ffe066',
   radiusPx: 10,
 };
