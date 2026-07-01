@@ -20,7 +20,29 @@
       </section>
 
       <aside id="control-panel">
-        <p class="placeholder">Mission controls coming soon.</p>
+
+        <section class="panel-section" id="section-date">
+          <h2 class="panel-heading">Departure Date</h2>
+
+          <div class="date-input-row">
+            <input type="date" id="date-input" />
+            <button class="btn-ghost" id="date-today" title="Jump to today">Today</button>
+          </div>
+
+          <div class="date-step-row">
+            <button class="btn-step" id="step-prev-year"  title="−1 year">−Y</button>
+            <button class="btn-step" id="step-prev-month" title="−1 month">−M</button>
+            <button class="btn-step" id="step-prev-day"   title="−1 day">−D</button>
+            <button class="btn-step" id="step-next-day"   title="+1 day">+D</button>
+            <button class="btn-step" id="step-next-month" title="+1 month">+M</button>
+            <button class="btn-step" id="step-next-year"  title="+1 year">+Y</button>
+          </div>
+        </section>
+
+        <section class="panel-section panel-section--muted" id="section-mission">
+          <p class="placeholder">Mission controls coming in a future PR.</p>
+        </section>
+
       </aside>
     </main>
   </div>
