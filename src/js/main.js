@@ -3,13 +3,14 @@ import { toJ2000Century } from './physics/epoch.js';
 import { createCamera, fitSolarSystem } from './render/camera.js';
 import { drawAllOrbits } from './render/orbits.js';
 import { drawAllPlanets, hitTestPlanet } from './render/planets.js';
+import { initDatePicker } from './ui/datepicker.js';
 
 const canvas = document.getElementById('solar-system');
 const ctx    = canvas.getContext('2d');
 
 let cam;
 let hoveredPlanet = null;
-const T = toJ2000Century(new Date());
+let T = toJ2000Century(new Date());
 
 function resize() {
   const container = canvas.parentElement;
@@ -30,7 +31,7 @@ function resize() {
   draw();
 }
 
-function drawSol() {
+function drawStar() {
   const cx = cam.originX;
   const cy = cam.originY;
   const r  = Math.max(4, STAR.radiusPx);
@@ -53,9 +54,16 @@ function draw() {
   ctx.clearRect(0, 0, w, h);
 
   drawAllOrbits(ctx, cam, PLANETS, T);
-  drawSol();
+  drawStar();
   drawAllPlanets(ctx, cam, PLANETS, T, hoveredPlanet);
 }
+
+// ── Date picker ───────────────────────────────────────────────────────────────
+
+initDatePicker(date => {
+  T = toJ2000Century(date);
+  draw();
+});
 
 // ── Hover ─────────────────────────────────────────────────────────────────────
 
