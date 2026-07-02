@@ -217,6 +217,10 @@ body {
   margin-top: 2px;
 }
 
+.field-range-label--comfort {
+  color: #70c070;
+}
+
 /* ── Comparison mode ── */
 
 .compare-header {
@@ -363,6 +367,16 @@ body {
   background: #3a2a00;
   color: #f0c040;
   border: 1px solid #604800;
+}
+
+.info-comfort-warn {
+  font-size: 11px;
+  color: #f0a030;
+  background: #2a1a00;
+  border: 1px solid #5a3800;
+  border-radius: 4px;
+  padding: 5px 8px;
+  margin-bottom: 8px;
 }
 
 /* ── Relativity panel ── */
