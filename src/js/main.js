@@ -12,6 +12,7 @@ import { initMissionPanel } from './ui/panel.js';
 import { renderRelativity } from './ui/relativity.js';
 import { renderMissionInfo } from './ui/missionInfo.js';
 import { createAnimator, getSpacecraftState } from './ui/animator.js';
+import { drawArrivalOverlay, triggerArrivalFlash, isFlashing } from './render/arrivalOverlay.js';
 
 const canvas = document.getElementById('solar-system');
 const ctx    = canvas.getContext('2d');
@@ -31,9 +32,19 @@ let missionParams = {
 
 // ── Animator ──────────────────────────────────────────────────────────────────
 
-const animator = createAnimator(tau => {
-  draw(tau);
-});
+function startFlashLoop() {
+  triggerArrivalFlash();
+  function flashFrame() {
+    draw(1);
+    if (isFlashing()) requestAnimationFrame(flashFrame);
+  }
+  requestAnimationFrame(flashFrame);
+}
+
+const animator = createAnimator(
+  tau => draw(tau),
+  ()  => startFlashLoop(),
+);
 
 // ── Mission computation ───────────────────────────────────────────────────────
 
@@ -90,6 +101,7 @@ function draw(tau = 0) {
   drawAllPlanets(ctx, cam, PLANETS, T, hoveredPlanet);
 
   if (mission) {
+    drawArrivalOverlay(ctx, cam, mission);
     drawTrajectory(ctx, cam, mission);
     drawDepartureMarker(ctx, cam, mission);
 
