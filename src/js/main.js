@@ -5,11 +5,13 @@ import { createCamera, fitSolarSystem } from './render/camera.js';
 import { drawAllOrbits } from './render/orbits.js';
 import { drawAllPlanets, hitTestPlanet } from './render/planets.js';
 import { drawTrajectory, drawDepartureMarker } from './render/trajectory.js';
+import { drawSpacecraft } from './render/spacecraft.js';
 import { initDatePicker } from './ui/datepicker.js';
 import { initControls, initZoomButtons } from './ui/controls.js';
 import { initMissionPanel } from './ui/panel.js';
 import { renderRelativity } from './ui/relativity.js';
 import { renderMissionInfo } from './ui/missionInfo.js';
+import { createAnimator, getSpacecraftState } from './ui/animator.js';
 
 const canvas = document.getElementById('solar-system');
 const ctx    = canvas.getContext('2d');
@@ -21,21 +23,26 @@ let currentDate   = new Date();
 let T             = toJ2000Century(currentDate);
 let mission       = null;
 
-// Mission parameters — updated by panel controls
 let missionParams = {
   originPlanet: PLANETS.find(p => p.name === 'Earth'),
   destPlanet:   PLANETS.find(p => p.name === 'Mars'),
   accelG:       1.0,
 };
 
+// ── Animator ──────────────────────────────────────────────────────────────────
+
+const animator = createAnimator(tau => {
+  draw(tau);
+});
+
 // ── Mission computation ───────────────────────────────────────────────────────
 
 function updateMission() {
   const { originPlanet, destPlanet, accelG } = missionParams;
   mission = computeMission(originPlanet, destPlanet, currentDate, accelG);
-  const label = `${originPlanet.name} → ${destPlanet.name}`;
+  animator.setMission(mission);
   renderMissionInfo(mission);
-  renderRelativity(mission.trajectory, label, accelG);
+  renderRelativity(mission.trajectory, `${originPlanet.name} → ${destPlanet.name}`, accelG);
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
@@ -53,7 +60,7 @@ function resize() {
 
   ctx.scale(dpr, dpr);
   fitSolarSystem(cam, w, h);
-  draw();
+  draw(animator.getTau());
 }
 
 function drawStar() {
@@ -73,7 +80,7 @@ function drawStar() {
   ctx.restore();
 }
 
-function draw() {
+function draw(tau = 0) {
   const w = canvas.clientWidth;
   const h = canvas.clientHeight;
   ctx.clearRect(0, 0, w, h);
@@ -85,25 +92,28 @@ function draw() {
   if (mission) {
     drawTrajectory(ctx, cam, mission);
     drawDepartureMarker(ctx, cam, mission);
+
+    const sc = getSpacecraftState(tau, mission);
+    if (sc) drawSpacecraft(ctx, cam, sc.pos, sc.dir);
   }
 }
 
 // ── Controls ──────────────────────────────────────────────────────────────────
 
-initControls(canvas, cam, draw);
-initZoomButtons(canvas, cam, draw);
+initControls(canvas, cam, () => draw(animator.getTau()));
+initZoomButtons(canvas, cam, () => draw(animator.getTau()));
 
 initMissionPanel(params => {
   missionParams = params;
   updateMission();
-  draw();
+  draw(0);
 });
 
 initDatePicker(date => {
   currentDate = date;
   T           = toJ2000Century(date);
   updateMission();
-  draw();
+  draw(0);
 });
 
 // ── Hover ─────────────────────────────────────────────────────────────────────
@@ -117,14 +127,14 @@ canvas.addEventListener('mousemove', e => {
   if (hit !== hoveredPlanet) {
     hoveredPlanet = hit;
     canvas.style.cursor = hit ? 'pointer' : 'crosshair';
-    draw();
+    draw(animator.getTau());
   }
 });
 
 canvas.addEventListener('mouseleave', () => {
   if (hoveredPlanet !== null) {
     hoveredPlanet = null;
-    draw();
+    draw(animator.getTau());
   }
 });
 
