@@ -1,11 +1,6 @@
 import { formatDuration, formatSpeedC } from '../physics/trajectory.js';
 import { formatDate } from '../physics/epoch.js';
 
-/**
- * Render mission stats into #mission-info-panel.
- *
- * @param {object|null} mission - MissionState from computeMission(), or null
- */
 export function renderMissionInfo(mission) {
   const panel = document.getElementById('mission-info-panel');
   if (!panel) return;
@@ -29,6 +24,10 @@ export function renderMissionInfo(mission) {
     ? `<span class="info-badge info-badge--warn" title="Speed limit of 10% c reached — cruise phase added">10% c cap active</span>`
     : '';
 
+  const comfortWarn = accelG > 1.2
+    ? `<div class="info-comfort-warn">&#9888; ${accelG.toFixed(2)} g exceeds sustained human comfort (≤ 1.2 g)</div>`
+    : '';
+
   const cruiseRow = isCapped
     ? `<div class="info-row">
          <span class="info-key">Cruise phase</span>
@@ -37,6 +36,7 @@ export function renderMissionInfo(mission) {
     : '';
 
   panel.innerHTML = `
+    ${comfortWarn}
     <div class="info-route">
       <span class="info-origin" style="color:${originPlanet.color}">${originPlanet.name}</span>
       <span class="info-arrow">→</span>
@@ -79,7 +79,7 @@ export function renderMissionInfo(mission) {
 
     <div class="info-row">
       <span class="info-key">Acceleration</span>
-      <span class="info-val">${accelG.toFixed(1)} g</span>
+      <span class="info-val">${accelG.toFixed(2)} g</span>
     </div>
     <div class="info-row">
       <span class="info-key">Peak speed</span>

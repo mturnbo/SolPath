@@ -3,13 +3,11 @@ import { PLANETS } from '../data/planets.js';
 const DEFAULT_ORIGIN = 'Earth';
 const DEFAULT_DEST   = 'Mars';
 const DEFAULT_ACCEL  = 1.0;
-const ACCEL_MIN      = 0.5;
+const ACCEL_MIN      = 0.01;
 const ACCEL_MAX      = 2.0;
-const ACCEL_STEP     = 0.1;
+const ACCEL_STEP     = 0.01;
+const ACCEL_COMFORT  = 1.2;
 
-/**
- * Populate both planet <select> elements with options from PLANETS.
- */
 function populatePlanetSelects(originEl, destEl) {
   for (const planet of PLANETS) {
     const opt1 = new Option(planet.name, planet.name);
@@ -21,16 +19,19 @@ function populatePlanetSelects(originEl, destEl) {
   destEl.value   = DEFAULT_DEST;
 }
 
-/**
- * Initialise the Mission Planner panel section.
- *
- * Wires up origin/destination selectors and the acceleration slider.
- * Calls `onChange({ originPlanet, destPlanet, accelG })` whenever any value
- * changes. Prevents selecting the same planet as both origin and destination.
- *
- * @param {function} onChange
- * @returns {{ getState: function }} - returns current { originPlanet, destPlanet, accelG }
- */
+function updateAccelLabel(accelLbl, g) {
+  const formatted = g < 0.1 ? g.toFixed(2) : g.toFixed(2);
+  if (g > ACCEL_COMFORT) {
+    accelLbl.textContent = `${formatted} g`;
+    accelLbl.style.color = '#f0a030';
+    accelLbl.title = `Above ${ACCEL_COMFORT} g — exceeds sustained human comfort`;
+  } else {
+    accelLbl.textContent = `${formatted} g`;
+    accelLbl.style.color = '';
+    accelLbl.title = '';
+  }
+}
+
 export function initMissionPanel(onChange) {
   const originEl  = document.getElementById('select-origin');
   const destEl    = document.getElementById('select-dest');
@@ -43,7 +44,7 @@ export function initMissionPanel(onChange) {
   accelEl.max   = ACCEL_MAX;
   accelEl.step  = ACCEL_STEP;
   accelEl.value = DEFAULT_ACCEL;
-  accelLbl.textContent = `${DEFAULT_ACCEL.toFixed(1)} g`;
+  updateAccelLabel(accelLbl, DEFAULT_ACCEL);
 
   function getState() {
     return {
@@ -60,7 +61,6 @@ export function initMissionPanel(onChange) {
   }
 
   originEl.addEventListener('change', () => {
-    // If origin now matches dest, bump dest to the next planet
     if (originEl.value === destEl.value) {
       const idx = PLANETS.findIndex(p => p.name === destEl.value);
       const next = PLANETS[(idx + 1) % PLANETS.length];
@@ -79,7 +79,7 @@ export function initMissionPanel(onChange) {
   });
 
   accelEl.addEventListener('input', () => {
-    accelLbl.textContent = `${parseFloat(accelEl.value).toFixed(1)} g`;
+    updateAccelLabel(accelLbl, parseFloat(accelEl.value));
     emit();
   });
 
