@@ -217,6 +217,71 @@ body {
   margin-top: 2px;
 }
 
+/* ── Mission info panel ── */
+
+.info-route {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.info-arrow {
+  color: var(--color-text-muted);
+}
+
+.info-divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 8px 0;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.info-key {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  padding-right: 8px;
+}
+
+.info-val {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text);
+  text-align: right;
+}
+
+.info-val--accent {
+  color: var(--color-accent);
+}
+
+.info-val--ship {
+  color: #a0e8b0;
+}
+
+.info-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.02em;
+}
+
+.info-badge--warn {
+  background: #3a2a00;
+  color: #f0c040;
+  border: 1px solid #604800;
+}
+
 /* ── Relativity panel ── */
 
 .info-empty {
