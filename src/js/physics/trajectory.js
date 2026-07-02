@@ -87,6 +87,7 @@ export function solveBrachistochrone(distAU, accelG) {
       accelTimeDays:  tHalf  / DAY_S,
       cruiseTimeDays: 0,
       accelDistAU:    distAU / 2,
+      deltaVKms:      (2 * vPeak) / 1000,
     };
   }
 
@@ -112,6 +113,7 @@ export function solveBrachistochrone(distAU, accelG) {
     coordTimeDays:  tCoord / DAY_S,
     shipTimeDays:   tShip  / DAY_S,
     flipDistAU:     dAccel / AU_M,
+    deltaVKms:      (2 * C_MAX) / 1000,
     maxSpeedC:      MAX_SPEED_FRACTION,
     isCapped:       true,
     accelTimeDays:  tAccel / DAY_S,

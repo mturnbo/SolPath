@@ -9,6 +9,7 @@ import { initDatePicker } from './ui/datepicker.js';
 import { initControls, initZoomButtons } from './ui/controls.js';
 import { initMissionPanel } from './ui/panel.js';
 import { renderRelativity } from './ui/relativity.js';
+import { renderMissionInfo } from './ui/missionInfo.js';
 
 const canvas = document.getElementById('solar-system');
 const ctx    = canvas.getContext('2d');
@@ -33,6 +34,7 @@ function updateMission() {
   const { originPlanet, destPlanet, accelG } = missionParams;
   mission = computeMission(originPlanet, destPlanet, currentDate, accelG);
   const label = `${originPlanet.name} → ${destPlanet.name}`;
+  renderMissionInfo(mission);
   renderRelativity(mission.trajectory, label, accelG);
 }
 
