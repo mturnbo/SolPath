@@ -15,6 +15,7 @@ import { initComparisonPanel } from './ui/comparison.js';
 import { renderRelativity } from './ui/relativity.js';
 import { renderMissionInfo } from './ui/missionInfo.js';
 import { createAnimator, getSpacecraftState } from './ui/animator.js';
+import { initMobileCollapse } from './ui/mobile.js';
 
 const canvas = document.getElementById('solar-system');
 const ctx    = canvas.getContext('2d');
@@ -175,3 +176,4 @@ canvas.addEventListener('mouseleave', () => {
 window.addEventListener('resize', resize);
 resize();
 updateMission();
+initMobileCollapse();

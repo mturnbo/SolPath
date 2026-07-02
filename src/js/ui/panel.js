@@ -3,9 +3,10 @@ import { PLANETS } from '../data/planets.js';
 const DEFAULT_ORIGIN = 'Earth';
 const DEFAULT_DEST   = 'Mars';
 const DEFAULT_ACCEL  = 1.0;
-const ACCEL_MIN      = 0.5;
+const ACCEL_MIN      = 0.01;
 const ACCEL_MAX      = 2.0;
-const ACCEL_STEP     = 0.1;
+const ACCEL_STEP     = 0.01;
+const ACCEL_COMFORT  = 1.2;   // sustained g above this is physiologically taxing
 
 /**
  * Populate both planet <select> elements with options from PLANETS.
@@ -43,7 +44,16 @@ export function initMissionPanel(onChange) {
   accelEl.max   = ACCEL_MAX;
   accelEl.step  = ACCEL_STEP;
   accelEl.value = DEFAULT_ACCEL;
-  accelLbl.textContent = `${DEFAULT_ACCEL.toFixed(1)} g`;
+  updateAccelLabel(DEFAULT_ACCEL);
+
+  function updateAccelLabel(g) {
+    const uncomfortable = g > ACCEL_COMFORT;
+    accelLbl.textContent  = `${g.toFixed(2)} g`;
+    accelLbl.className    = uncomfortable ? 'field-value field-value--warn' : 'field-value';
+    accelLbl.title        = uncomfortable
+      ? `Above ${ACCEL_COMFORT} g — sustained exposure is physiologically taxing`
+      : '';
+  }
 
   function getState() {
     return {
@@ -79,7 +89,7 @@ export function initMissionPanel(onChange) {
   });
 
   accelEl.addEventListener('input', () => {
-    accelLbl.textContent = `${parseFloat(accelEl.value).toFixed(1)} g`;
+    updateAccelLabel(parseFloat(accelEl.value));
     emit();
   });
 

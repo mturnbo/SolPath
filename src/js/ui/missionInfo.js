@@ -29,6 +29,10 @@ export function renderMissionInfo(mission) {
     ? `<span class="info-badge info-badge--warn" title="Speed limit of 10% c reached — cruise phase added">10% c cap active</span>`
     : '';
 
+  const comfortBadge = accelG > 1.2
+    ? `<div class="info-comfort-warn">⚠ ${accelG.toFixed(2)} g sustained — above comfortable limit (1.2 g)</div>`
+    : '';
+
   const cruiseRow = isCapped
     ? `<div class="info-row">
          <span class="info-key">Cruise phase</span>
@@ -37,6 +41,7 @@ export function renderMissionInfo(mission) {
     : '';
 
   panel.innerHTML = `
+    ${comfortBadge}
     <div class="info-route">
       <span class="info-origin" style="color:${originPlanet.color}">${originPlanet.name}</span>
       <span class="info-arrow">→</span>
