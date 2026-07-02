@@ -152,6 +152,71 @@ body {
   margin-bottom: 12px;
 }
 
+/* ── Mission planner fields ── */
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.field-row--col {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.field-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.field-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  flex: 0 0 36px;
+}
+
+.field-value {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-accent);
+}
+
+.field-select {
+  flex: 1 1 0;
+  min-width: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 13px;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.field-select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.field-range {
+  width: 100%;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.field-range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
 /* ── Relativity panel ── */
 
 .info-empty {
