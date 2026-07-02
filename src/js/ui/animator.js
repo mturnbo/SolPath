@@ -14,7 +14,7 @@ const ANIMATION_DURATION_S = 10;
  * @param {function} onTick  - called with current tau (0–1) on each frame
  * @returns {Animator}
  */
-export function createAnimator(onTick) {
+export function createAnimator(onTick, onComplete = null) {
   let playing    = false;
   let tau        = 0;
   let lastTs     = null;
@@ -36,6 +36,7 @@ export function createAnimator(onTick) {
     } else {
       playing = false;
       updateButtons();
+      if (onComplete) onComplete();
     }
   }
 
