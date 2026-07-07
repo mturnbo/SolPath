@@ -8,6 +8,7 @@ import { drawTrajectory, drawDepartureMarker } from './render/trajectory.js';
 import { drawSpacecraft } from './render/spacecraft.js';
 import { drawComparisonTrajectories, drawComparisonLegend } from './render/comparison.js';
 import { drawArrivalOverlay, triggerArrivalFlash, isFlashing } from './render/arrivalOverlay.js';
+import { drawDeparturePlaceholders } from './render/departurePlaceholders.js';
 import { initDatePicker } from './ui/datepicker.js';
 import { initControls, initZoomButtons } from './ui/controls.js';
 import { initMissionPanel } from './ui/panel.js';
@@ -107,14 +108,21 @@ function draw(tau = 0) {
   const h = canvas.clientHeight;
   ctx.clearRect(0, 0, w, h);
 
+  // Animate planet positions during spacecraft animation: interpolate T between
+  // departure and arrival as tau goes 0→1.
+  const T_anim = (mission && tau > 0)
+    ? mission.T_depart + (mission.T_arrive - mission.T_depart) * tau
+    : T;
+
   drawAllOrbits(ctx, cam, PLANETS, T);
   drawStar();
-  drawAllPlanets(ctx, cam, PLANETS, T, hoveredPlanet);
+  drawAllPlanets(ctx, cam, PLANETS, T_anim, hoveredPlanet);
 
   if (compareEnabled && comparisonMissions.length > 0) {
     drawComparisonTrajectories(ctx, cam, comparisonMissions);
     drawComparisonLegend(ctx, w, comparisonMissions);
   } else if (mission) {
+    drawDeparturePlaceholders(ctx, cam, mission, tau);
     drawArrivalOverlay(ctx, cam, mission);
     drawTrajectory(ctx, cam, mission);
     drawDepartureMarker(ctx, cam, mission);
