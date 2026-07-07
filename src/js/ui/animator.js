@@ -107,7 +107,15 @@ export function getSpacecraftState(tau, mission) {
 
   let dir = mission.direction;
   if (mission.isRerouted) {
-    const tau1 = mission.leg1.coordTimeDays / mission.trajectory.coordTimeDays;
+    let tau1;
+    if (mission.isSmooth) {
+      // Invert the brachistochrone position function to find tau where
+      // the spacecraft crosses the waypoint (at fraction f1 of total distance).
+      const f1 = mission.leg1DistAU / (mission.leg1DistAU + mission.leg2DistAU);
+      tau1 = f1 < 0.5 ? Math.sqrt(f1 / 2) : 1 - Math.sqrt((1 - f1) / 2);
+    } else {
+      tau1 = mission.leg1.coordTimeDays / mission.trajectory.coordTimeDays;
+    }
     dir = tau <= tau1 ? mission.direction1 : mission.direction2;
   }
 

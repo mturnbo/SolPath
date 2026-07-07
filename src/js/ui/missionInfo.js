@@ -25,18 +25,29 @@ export function renderMissionInfo(mission) {
     : '';
 
   const detourBadge = mission.isRerouted
-    ? `<span class="info-badge info-badge--detour" title="Path rerouted around the solar exclusion zone (0.35 AU)">solar detour</span>`
+    ? (mission.isSmooth
+        ? `<span class="info-badge info-badge--detour" title="Smooth arc skirting the solar exclusion zone (0.35 AU) — no stop at waypoint">smooth arc</span>`
+        : `<span class="info-badge info-badge--detour" title="Path rerouted around the solar exclusion zone (0.35 AU)">solar detour</span>`)
     : '';
 
   const detourRows = mission.isRerouted
-    ? `<div class="info-row">
-         <span class="info-key">Leg 1</span>
-         <span class="info-val">${mission.leg1DistAU.toFixed(3)} AU · ${formatDuration(mission.leg1.coordTimeDays)}</span>
-       </div>
-       <div class="info-row">
-         <span class="info-key">Leg 2</span>
-         <span class="info-val">${mission.leg2DistAU.toFixed(3)} AU · ${formatDuration(mission.leg2.coordTimeDays)}</span>
-       </div>`
+    ? (mission.isSmooth
+        ? `<div class="info-row">
+             <span class="info-key">Leg 1</span>
+             <span class="info-val">${mission.leg1DistAU.toFixed(3)} AU</span>
+           </div>
+           <div class="info-row">
+             <span class="info-key">Leg 2</span>
+             <span class="info-val">${mission.leg2DistAU.toFixed(3)} AU</span>
+           </div>`
+        : `<div class="info-row">
+             <span class="info-key">Leg 1</span>
+             <span class="info-val">${mission.leg1DistAU.toFixed(3)} AU · ${formatDuration(mission.leg1.coordTimeDays)}</span>
+           </div>
+           <div class="info-row">
+             <span class="info-key">Leg 2</span>
+             <span class="info-val">${mission.leg2DistAU.toFixed(3)} AU · ${formatDuration(mission.leg2.coordTimeDays)}</span>
+           </div>`)
     : '';
 
   const comfortWarn = accelG > 1.2

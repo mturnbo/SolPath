@@ -33,6 +33,7 @@ let missionParams = {
   originPlanet: PLANETS.find(p => p.name === 'Earth'),
   destPlanet:   PLANETS.find(p => p.name === 'Mars'),
   accelG:       1.0,
+  detourMode:   'stop',
 };
 
 // ── Animator ──────────────────────────────────────────────────────────────────
@@ -54,8 +55,8 @@ const animator = createAnimator(
 // ── Mission computation ───────────────────────────────────────────────────────
 
 function updateMission() {
-  const { originPlanet, destPlanet, accelG } = missionParams;
-  mission = computeMission(originPlanet, destPlanet, currentDate, accelG);
+  const { originPlanet, destPlanet, accelG, detourMode } = missionParams;
+  mission = computeMission(originPlanet, destPlanet, currentDate, accelG, detourMode);
   animator.setMission(mission);
   renderMissionInfo(mission);
   renderRelativity(mission.trajectory, `${originPlanet.name} → ${destPlanet.name}`, accelG);

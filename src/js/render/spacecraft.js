@@ -10,10 +10,29 @@ export function spacecraftPosition(tau, mission) {
     };
   }
 
-  // Two-leg rerouted path
+  if (mission.isSmooth) {
+    // Single brachistochrone over the full two-segment path (no stop at waypoint)
+    const { departurePos, waypoint, arrivalPos, leg1DistAU, leg2DistAU, trajectory } = mission;
+    const d_total = leg1DistAU + leg2DistAU;
+    const dist    = positionFraction(tau, trajectory, d_total) * d_total;
+    if (dist <= leg1DistAU) {
+      const f = dist / leg1DistAU;
+      return {
+        x: departurePos.x + f * (waypoint.x - departurePos.x),
+        y: departurePos.y + f * (waypoint.y - departurePos.y),
+      };
+    }
+    const f = (dist - leg1DistAU) / leg2DistAU;
+    return {
+      x: waypoint.x + f * (arrivalPos.x - waypoint.x),
+      y: waypoint.y + f * (arrivalPos.y - waypoint.y),
+    };
+  }
+
+  // Two-leg stop: each leg is an independent brachistochrone
   const { departurePos, waypoint, arrivalPos, leg1, leg2, leg1DistAU, leg2DistAU } = mission;
   const totalTime = leg1.coordTimeDays + leg2.coordTimeDays;
-  const tau1 = leg1.coordTimeDays / totalTime;
+  const tau1      = leg1.coordTimeDays / totalTime;
 
   if (tau <= tau1) {
     const localTau = tau / tau1;

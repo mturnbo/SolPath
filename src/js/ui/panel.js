@@ -33,10 +33,11 @@ function updateAccelLabel(accelLbl, g) {
 }
 
 export function initMissionPanel(onChange) {
-  const originEl  = document.getElementById('select-origin');
-  const destEl    = document.getElementById('select-dest');
-  const accelEl   = document.getElementById('slider-accel');
-  const accelLbl  = document.getElementById('label-accel');
+  const originEl   = document.getElementById('select-origin');
+  const destEl     = document.getElementById('select-dest');
+  const accelEl    = document.getElementById('slider-accel');
+  const accelLbl   = document.getElementById('label-accel');
+  const detourEl   = document.getElementById('select-detour-mode');
 
   populatePlanetSelects(originEl, destEl);
 
@@ -51,6 +52,7 @@ export function initMissionPanel(onChange) {
       originPlanet: PLANETS.find(p => p.name === originEl.value),
       destPlanet:   PLANETS.find(p => p.name === destEl.value),
       accelG:       parseFloat(accelEl.value),
+      detourMode:   detourEl ? detourEl.value : 'stop',
     };
   }
 
@@ -82,6 +84,8 @@ export function initMissionPanel(onChange) {
     updateAccelLabel(accelLbl, parseFloat(accelEl.value));
     emit();
   });
+
+  if (detourEl) detourEl.addEventListener('change', emit);
 
   return { getState };
 }

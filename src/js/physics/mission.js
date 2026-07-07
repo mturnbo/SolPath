@@ -11,7 +11,7 @@ function unitVec(A, B) {
   return { nx: dx / d, ny: dy / d };
 }
 
-export function computeMission(originPlanet, destPlanet, departureDate, accelG) {
+export function computeMission(originPlanet, destPlanet, departureDate, accelG, detourMode = 'stop') {
   const T_depart       = toJ2000Century(departureDate);
   const departurePos   = planetPosition(originPlanet, T_depart);
   const currentDestPos = planetPosition(destPlanet,   T_depart);
@@ -22,6 +22,13 @@ export function computeMission(originPlanet, destPlanet, departureDate, accelG) 
 
   if (!isRerouted) {
     return computeDirect(
+      originPlanet, destPlanet, departureDate, accelG,
+      T_depart, departurePos, currentDestPos,
+    );
+  }
+
+  if (detourMode === 'arc') {
+    return computeReroutedArc(
       originPlanet, destPlanet, departureDate, accelG,
       T_depart, departurePos, currentDestPos,
     );
@@ -132,8 +139,71 @@ function computeRerouted(
     direction: dir1,
     // Reroute fields
     isRerouted: true,
+    isSmooth: false,
     waypoint,
     leg1, leg2,
+    leg1DistAU: d1,
+    leg2DistAU: d2,
+    direction1: dir1,
+    direction2: dir2,
+  };
+}
+
+// ── Rerouted smooth arc — single brachistochrone over the detour path ─────────
+
+function computeReroutedArc(
+  originPlanet, destPlanet, departureDate, accelG,
+  T_depart, departurePos, currentDestPos,
+) {
+  const waypoint = findSolarDetour(departurePos, currentDestPos, SOLAR_EXCLUSION_AU);
+  const d1 = distanceAU(departurePos, waypoint);
+
+  // Estimate total path length for destination refinement
+  const d2est    = distanceAU(waypoint, currentDestPos);
+  const trajEst  = solveBrachistochrone(d1 + d2est, accelG);
+  const arrDateEst = addDays(departureDate, trajEst.coordTimeDays);
+  const arrPosEst  = planetPosition(destPlanet, toJ2000Century(arrDateEst));
+
+  const d2         = distanceAU(waypoint, arrPosEst);
+  const d_total    = d1 + d2;
+  const trajectory = solveBrachistochrone(d_total, accelG);
+
+  const arrivalDate = addDays(departureDate, trajectory.coordTimeDays);
+  const T_arrive    = toJ2000Century(arrivalDate);
+  const arrivalPos  = planetPosition(destPlanet, T_arrive);
+
+  const dir1 = unitVec(departurePos, waypoint);
+  const dir2 = unitVec(waypoint, arrivalPos);
+
+  // Flip point position along the two-segment path (A→W→B)
+  const flipDist = trajectory.flipDistAU;
+  let midpointPos;
+  if (flipDist <= d1) {
+    const f = flipDist / d1;
+    midpointPos = {
+      x: departurePos.x + f * (waypoint.x - departurePos.x),
+      y: departurePos.y + f * (waypoint.y - departurePos.y),
+    };
+  } else {
+    const f = (flipDist - d1) / d2;
+    midpointPos = {
+      x: waypoint.x + f * (arrivalPos.x - waypoint.x),
+      y: waypoint.y + f * (arrivalPos.y - waypoint.y),
+    };
+  }
+
+  return {
+    originPlanet, destPlanet, departureDate, accelG,
+    arrivalDate, arrivalDateStr: formatDate(arrivalDate),
+    T_depart, T_arrive,
+    departurePos, arrivalPos, currentDestPos,
+    distAU: d_total,
+    trajectory,
+    midpointPos,
+    direction: dir1,
+    isRerouted: true,
+    isSmooth: true,
+    waypoint,
     leg1DistAU: d1,
     leg2DistAU: d2,
     direction1: dir1,
