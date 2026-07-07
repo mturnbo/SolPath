@@ -122,6 +122,66 @@ export function solveBrachistochrone(distAU, accelG) {
   };
 }
 
+// ── Solar exclusion ───────────────────────────────────────────────────────────
+
+/** Minimum safe distance from Sol in AU (just outside Mercury perihelion). */
+export const SOLAR_EXCLUSION_AU = 0.35;
+
+/**
+ * Closest approach of the line segment A→B to Sol (origin).
+ *
+ * @param {{ x, y }} A  departure position (AU)
+ * @param {{ x, y }} B  arrival position (AU)
+ * @returns {{ t: number, distAU: number }}  parameter t ∈ [0,1] and distance in AU
+ */
+export function closestSolarApproach(A, B) {
+  const dx = B.x - A.x, dy = B.y - A.y;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq === 0) return { t: 0, distAU: Math.hypot(A.x, A.y) };
+  const t = Math.max(0, Math.min(1, -(A.x * dx + A.y * dy) / lenSq));
+  return { t, distAU: Math.hypot(A.x + t * dx, A.y + t * dy) };
+}
+
+/**
+ * Find the time-optimal waypoint W on the solar exclusion circle for a path
+ * that would otherwise pass too close to Sol.
+ *
+ * For a brachistochrone, T(d) ∝ √d, so we minimise √|AW| + √|WB| via ternary
+ * search on each half of the exclusion circle.  Both halves are unimodal.
+ *
+ * @param {{ x, y }} A
+ * @param {{ x, y }} B
+ * @param {number}   R  exclusion radius (AU)
+ * @returns {{ x: number, y: number }}  waypoint in AU
+ */
+export function findSolarDetour(A, B, R) {
+  function f(theta) {
+    const Wx = R * Math.cos(theta), Wy = R * Math.sin(theta);
+    return Math.sqrt(Math.hypot(A.x - Wx, A.y - Wy))
+         + Math.sqrt(Math.hypot(B.x - Wx, B.y - Wy));
+  }
+
+  function ternarySearch(lo, hi) {
+    for (let i = 0; i < 64; i++) {
+      const m1 = lo + (hi - lo) / 3;
+      const m2 = hi - (hi - lo) / 3;
+      if (f(m1) <= f(m2)) hi = m2; else lo = m1;
+    }
+    return (lo + hi) / 2;
+  }
+
+  // Split at the angle toward the foot of the perpendicular from Sol to AB.
+  const dx = B.x - A.x, dy = B.y - A.y;
+  const lenSq = dx * dx + dy * dy;
+  const tFoot = -(A.x * dx + A.y * dy) / lenSq;
+  const phiC  = Math.atan2(A.y + tFoot * dy, A.x + tFoot * dx);
+
+  const th1 = ternarySearch(phiC - Math.PI / 2, phiC + Math.PI / 2);       // near side
+  const th2 = ternarySearch(phiC + Math.PI / 2, phiC + 3 * Math.PI / 2);   // far side
+  const theta = f(th1) <= f(th2) ? th1 : th2;
+  return { x: R * Math.cos(theta), y: R * Math.sin(theta) };
+}
+
 // ── Formatting helpers ────────────────────────────────────────────────────────
 
 /**

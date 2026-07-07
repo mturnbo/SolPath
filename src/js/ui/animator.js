@@ -104,5 +104,12 @@ export function createAnimator(onTick, onComplete = null) {
 export function getSpacecraftState(tau, mission) {
   if (!mission || tau <= 0 || tau >= 1) return null;
   const pos = spacecraftPosition(tau, mission);
-  return { pos, dir: mission.direction };
+
+  let dir = mission.direction;
+  if (mission.isRerouted) {
+    const tau1 = mission.leg1.coordTimeDays / mission.trajectory.coordTimeDays;
+    dir = tau <= tau1 ? mission.direction1 : mission.direction2;
+  }
+
+  return { pos, dir };
 }

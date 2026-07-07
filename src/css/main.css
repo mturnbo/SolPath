@@ -369,6 +369,12 @@ body {
   border: 1px solid #604800;
 }
 
+.info-badge--detour {
+  background: #2a1500;
+  color: #ff9040;
+  border: 1px solid #6a3000;
+}
+
 .info-comfort-warn {
   font-size: 11px;
   color: #f0a030;

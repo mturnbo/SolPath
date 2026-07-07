@@ -24,6 +24,21 @@ export function renderMissionInfo(mission) {
     ? `<span class="info-badge info-badge--warn" title="Speed limit of 10% c reached — cruise phase added">10% c cap active</span>`
     : '';
 
+  const detourBadge = mission.isRerouted
+    ? `<span class="info-badge info-badge--detour" title="Path rerouted around the solar exclusion zone (0.35 AU)">solar detour</span>`
+    : '';
+
+  const detourRows = mission.isRerouted
+    ? `<div class="info-row">
+         <span class="info-key">Leg 1</span>
+         <span class="info-val">${mission.leg1DistAU.toFixed(3)} AU · ${formatDuration(mission.leg1.coordTimeDays)}</span>
+       </div>
+       <div class="info-row">
+         <span class="info-key">Leg 2</span>
+         <span class="info-val">${mission.leg2DistAU.toFixed(3)} AU · ${formatDuration(mission.leg2.coordTimeDays)}</span>
+       </div>`
+    : '';
+
   const comfortWarn = accelG > 1.2
     ? `<div class="info-comfort-warn">&#9888; ${accelG.toFixed(2)} g exceeds sustained human comfort (≤ 1.2 g)</div>`
     : '';
@@ -41,7 +56,7 @@ export function renderMissionInfo(mission) {
       <span class="info-origin" style="color:${originPlanet.color}">${originPlanet.name}</span>
       <span class="info-arrow">→</span>
       <span class="info-dest" style="color:${destPlanet.color}">${destPlanet.name}</span>
-      ${capBadge}
+      ${capBadge}${detourBadge}
     </div>
 
     <div class="info-divider"></div>
@@ -58,6 +73,7 @@ export function renderMissionInfo(mission) {
       <span class="info-key">Distance</span>
       <span class="info-val">${distAU.toFixed(3)} AU</span>
     </div>
+    ${detourRows}
 
     <div class="info-divider"></div>
 
