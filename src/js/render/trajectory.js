@@ -157,63 +157,42 @@ function drawWaypointMarker(ctx, wp) {
 }
 
 function drawSmoothArcTrajectory(ctx, cam, mission) {
-  const dep = worldToScreen(cam, mission.departurePos.x, mission.departurePos.y);
-  const wp  = worldToScreen(cam, mission.waypoint.x,     mission.waypoint.y);
-  const arr = worldToScreen(cam, mission.arrivalPos.x,   mission.arrivalPos.y);
+  const dep  = worldToScreen(cam, mission.departurePos.x, mission.departurePos.y);
+  const wp   = worldToScreen(cam, mission.waypoint.x,     mission.waypoint.y);
+  const arr  = worldToScreen(cam, mission.arrivalPos.x,   mission.arrivalPos.y);
+  const flip = worldToScreen(cam, mission.midpointPos.x,  mission.midpointPos.y);
 
   ctx.save();
 
-  // Build a quadratic Bézier that passes through the waypoint at t=0.5.
-  // Control point: C = 2W − 0.5(A+B)
-  const cpx = 2 * wp.sx - 0.5 * (dep.sx + arr.sx);
-  const cpy = 2 * wp.sy - 0.5 * (dep.sy + arr.sy);
+  const flipInLeg1 = mission.trajectory.flipDistAU <= mission.leg1DistAU;
 
-  // Sample the curve for arc-length parameterisation
-  const N = 80;
-  const pts = [];
-  for (let i = 0; i <= N; i++) {
-    const t = i / N, it = 1 - t;
-    pts.push({
-      x: it * it * dep.sx + 2 * t * it * cpx + t * t * arr.sx,
-      y: it * it * dep.sy + 2 * t * it * cpy + t * t * arr.sy,
-    });
+  if (flipInLeg1) {
+    // Accel: dep → flip   Decel: flip → wp → arr
+    ctx.beginPath();
+    ctx.moveTo(dep.sx, dep.sy); ctx.lineTo(flip.sx, flip.sy);
+    ctx.strokeStyle = ACCEL_COLOR; ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 0.85; ctx.setLineDash([]); ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(flip.sx, flip.sy); ctx.lineTo(wp.sx, wp.sy); ctx.lineTo(arr.sx, arr.sy);
+    ctx.strokeStyle = ACCEL_COLOR; ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 0.55; ctx.setLineDash([5, 5]); ctx.stroke();
+    ctx.setLineDash([]);
+  } else {
+    // Accel: dep → wp → flip   Decel: flip → arr
+    ctx.beginPath();
+    ctx.moveTo(dep.sx, dep.sy); ctx.lineTo(wp.sx, wp.sy); ctx.lineTo(flip.sx, flip.sy);
+    ctx.strokeStyle = ACCEL_COLOR; ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 0.85; ctx.setLineDash([]); ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(flip.sx, flip.sy); ctx.lineTo(arr.sx, arr.sy);
+    ctx.strokeStyle = ACCEL_COLOR; ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 0.55; ctx.setLineDash([5, 5]); ctx.stroke();
+    ctx.setLineDash([]);
   }
 
-  // Cumulative arc lengths
-  const lens = [0];
-  for (let i = 1; i <= N; i++) {
-    lens.push(lens[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
-  }
-  const halfLen = lens[N] / 2;
-
-  // Index where cumulative length first crosses the half-way point
-  let split = N;
-  for (let i = 0; i <= N; i++) {
-    if (lens[i] >= halfLen) { split = i; break; }
-  }
-
-  // Accel half (solid)
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  for (let i = 1; i <= split; i++) ctx.lineTo(pts[i].x, pts[i].y);
-  ctx.strokeStyle = ACCEL_COLOR;
-  ctx.lineWidth   = 1.5;
-  ctx.globalAlpha = 0.85;
-  ctx.setLineDash([]);
-  ctx.stroke();
-
-  // Decel half (dashed)
-  ctx.beginPath();
-  ctx.moveTo(pts[split].x, pts[split].y);
-  for (let i = split + 1; i <= N; i++) ctx.lineTo(pts[i].x, pts[i].y);
-  ctx.strokeStyle = ACCEL_COLOR;
-  ctx.lineWidth   = 1.5;
-  ctx.globalAlpha = 0.55;
-  ctx.setLineDash([5, 5]);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawFlipMarker(ctx, { sx: pts[split].x, sy: pts[split].y });
+  drawFlipMarker(ctx, flip);
   drawGrazeMarker(ctx, wp);
   drawArrivalMarker(ctx, cam, arr, mission.arrivalPos, mission.destPlanet);
 
