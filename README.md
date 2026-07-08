@@ -22,15 +22,15 @@ You can choose how the ship handles the waypoint on the exclusion circle:
 
 **Waypoint stop** — the ship decelerates to a full stop at the waypoint, then re-accelerates toward the destination. Two independent brachistochrone legs. Higher Δv; total time is proportional to √d₁ + √d₂.
 
-![Waypoint stop — Earth to Mercury, 2026-08-20](docs/detour-waypoint-stop.png)
+![Waypoint stop — Earth to Mercury, 2026-08-20](docs/detour-waypoint-stop-2.png)
 
 **Smooth arc** — the ship never stops. One continuous brachistochrone covers the full path length d₁ + d₂, with the single flip point falling somewhere along the combined route. Always faster and lower Δv than the waypoint stop, since √(d₁ + d₂) < √d₁ + √d₂.
 
-![Smooth arc — Earth to Mercury, 2026-08-20](docs/detour-smooth-arc.png)
+![Smooth arc — Earth to Mercury, 2026-08-20](docs/detour-smooth-arc-2.png)
 
 The detour is most extreme when the destination is nearly behind the Sun (solar conjunction). For Earth→Neptune this happens each year in early March, when the path passes within metres of the Sun's centre:
 
-![Smooth arc — Earth to Neptune, 2026-03-15](docs/detour-neptune-graze.png)
+![Smooth arc — Earth to Neptune, 2026-03-15](docs/detour-neptune-graze-2.png)
 
 ## Tech Stack
 
