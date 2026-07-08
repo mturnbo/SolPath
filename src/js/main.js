@@ -4,7 +4,7 @@ import { computeMission } from './physics/mission.js';
 import { createCamera, fitSolarSystem } from './render/camera.js';
 import { drawAllOrbits } from './render/orbits.js';
 import { drawAllPlanets, hitTestPlanet } from './render/planets.js';
-import { drawTrajectory, drawDepartureMarker } from './render/trajectory.js';
+import { drawTrajectory, drawDepartureMarker, drawExclusionRing } from './render/trajectory.js';
 import { drawSpacecraft } from './render/spacecraft.js';
 import { drawComparisonTrajectories, drawComparisonLegend } from './render/comparison.js';
 import { drawArrivalOverlay, triggerArrivalFlash, isFlashing } from './render/arrivalOverlay.js';
@@ -33,6 +33,7 @@ let missionParams = {
   originPlanet: PLANETS.find(p => p.name === 'Earth'),
   destPlanet:   PLANETS.find(p => p.name === 'Mars'),
   accelG:       1.0,
+  detourMode:   'stop',
 };
 
 // ── Animator ──────────────────────────────────────────────────────────────────
@@ -54,8 +55,8 @@ const animator = createAnimator(
 // ── Mission computation ───────────────────────────────────────────────────────
 
 function updateMission() {
-  const { originPlanet, destPlanet, accelG } = missionParams;
-  mission = computeMission(originPlanet, destPlanet, currentDate, accelG);
+  const { originPlanet, destPlanet, accelG, detourMode } = missionParams;
+  mission = computeMission(originPlanet, destPlanet, currentDate, accelG, detourMode);
   animator.setMission(mission);
   renderMissionInfo(mission);
   renderRelativity(mission.trajectory, `${originPlanet.name} → ${destPlanet.name}`, accelG);
@@ -122,6 +123,7 @@ function draw(tau = 0) {
     drawComparisonTrajectories(ctx, cam, comparisonMissions);
     drawComparisonLegend(ctx, w, comparisonMissions);
   } else if (mission) {
+    if (mission.isRerouted) drawExclusionRing(ctx, cam);
     drawDeparturePlaceholders(ctx, cam, mission, tau);
     drawArrivalOverlay(ctx, cam, mission);
     drawTrajectory(ctx, cam, mission);

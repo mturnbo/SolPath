@@ -1,89 +1,212 @@
 import { toJ2000Century, addDays, formatDate } from './epoch.js';
 import { planetPosition } from './kepler.js';
-import { solveBrachistochrone, distanceAU } from './trajectory.js';
+import {
+  solveBrachistochrone, distanceAU,
+  closestSolarApproach, findSolarDetour, SOLAR_EXCLUSION_AU,
+} from './trajectory.js';
 
-/**
- * Compute all state needed to describe a one-way mission between two planets.
- *
- * The trajectory is a brachistochrone (flip-and-burn) path. Planet positions
- * are evaluated at the departure date for the origin and at the computed
- * arrival date for the destination — i.e. we aim at where the target planet
- * will be, not where it is now.
- *
- * @param {object} originPlanet      - entry from PLANETS array
- * @param {object} destPlanet        - entry from PLANETS array
- * @param {Date}   departureDate
- * @param {number} accelG            - constant acceleration in g (0.5 – 2)
- * @returns {MissionState}
- *
- * @typedef {object} MissionState
- * @property {object} originPlanet
- * @property {object} destPlanet
- * @property {Date}   departureDate
- * @property {Date}   arrivalDate
- * @property {string} arrivalDateStr  - ISO "YYYY-MM-DD"
- * @property {number} accelG
- * @property {number} T_depart        - J2000 centuries at departure
- * @property {number} T_arrive        - J2000 centuries at arrival
- * @property {{ x: number, y: number }} departurePos  - origin at departure (AU)
- * @property {{ x: number, y: number }} arrivalPos    - destination at arrival (AU)
- * @property {{ x: number, y: number }} currentDestPos - destination right now (AU)
- * @property {number} distAU          - straight-line departure→arrival distance
- * @property {object} trajectory      - result from solveBrachistochrone
- * @property {{ x: number, y: number }} midpointPos   - flip point in world space
- * @property {{ nx: number, ny: number }} direction   - unit vector departure→arrival
- */
-export function computeMission(originPlanet, destPlanet, departureDate, accelG) {
-  const T_depart = toJ2000Century(departureDate);
+function unitVec(A, B) {
+  const dx = B.x - A.x, dy = B.y - A.y;
+  const d  = Math.hypot(dx, dy);
+  return { nx: dx / d, ny: dy / d };
+}
 
-  const departurePos    = planetPosition(originPlanet, T_depart);
-  const currentDestPos  = planetPosition(destPlanet,   T_depart);
+export function computeMission(originPlanet, destPlanet, departureDate, accelG, detourMode = 'stop') {
+  const T_depart       = toJ2000Century(departureDate);
+  const departurePos   = planetPosition(originPlanet, T_depart);
+  const currentDestPos = planetPosition(destPlanet,   T_depart);
 
-  // First-pass: estimate distance using current positions to get flight time
-  const distEstimate = distanceAU(departurePos, currentDestPos);
-  const trajEstimate = solveBrachistochrone(distEstimate, accelG);
+  // ── Check whether the direct path enters the solar exclusion zone ─────────
+  const { distAU: solarDist } = closestSolarApproach(departurePos, currentDestPos);
+  const isRerouted = solarDist < SOLAR_EXCLUSION_AU;
 
-  // Refine: compute destination position at the estimated arrival date
-  const arrivalDateEst = addDays(departureDate, trajEstimate.coordTimeDays);
-  const T_arriveEst    = toJ2000Century(arrivalDateEst);
-  const arrivalPosEst  = planetPosition(destPlanet, T_arriveEst);
+  if (!isRerouted) {
+    return computeDirect(
+      originPlanet, destPlanet, departureDate, accelG,
+      T_depart, departurePos, currentDestPos,
+    );
+  }
 
-  // Second-pass: use the refined distance for the final trajectory
-  const distAU    = distanceAU(departurePos, arrivalPosEst);
+  if (detourMode === 'arc') {
+    return computeReroutedArc(
+      originPlanet, destPlanet, departureDate, accelG,
+      T_depart, departurePos, currentDestPos,
+    );
+  }
+
+  return computeRerouted(
+    originPlanet, destPlanet, departureDate, accelG,
+    T_depart, departurePos, currentDestPos,
+  );
+}
+
+// ── Direct (straight-line) brachistochrone ───────────────────────────────────
+
+function computeDirect(
+  originPlanet, destPlanet, departureDate, accelG,
+  T_depart, departurePos, currentDestPos,
+) {
+  // First-pass estimate
+  const distEst  = distanceAU(departurePos, currentDestPos);
+  const trajEst  = solveBrachistochrone(distEst, accelG);
+
+  // Refine with destination at estimated arrival
+  const arrDateEst  = addDays(departureDate, trajEst.coordTimeDays);
+  const arrPosEst   = planetPosition(destPlanet, toJ2000Century(arrDateEst));
+
+  // Final trajectory
+  const distAU    = distanceAU(departurePos, arrPosEst);
   const trajectory = solveBrachistochrone(distAU, accelG);
 
-  const arrivalDate    = addDays(departureDate, trajectory.coordTimeDays);
-  const T_arrive       = toJ2000Century(arrivalDate);
-  const arrivalPos     = planetPosition(destPlanet, T_arrive);
+  const arrivalDate = addDays(departureDate, trajectory.coordTimeDays);
+  const T_arrive    = toJ2000Century(arrivalDate);
+  const arrivalPos  = planetPosition(destPlanet, T_arrive);
+  const dir         = unitVec(departurePos, arrivalPos);
 
-  // Direction unit vector from departure to arrival
-  const dx   = arrivalPos.x - departurePos.x;
-  const dy   = arrivalPos.y - departurePos.y;
-  const dist = Math.hypot(dx, dy);
-  const nx   = dx / dist;
-  const ny   = dy / dist;
+  return {
+    originPlanet, destPlanet, departureDate, accelG,
+    arrivalDate, arrivalDateStr: formatDate(arrivalDate),
+    T_depart, T_arrive,
+    departurePos, arrivalPos, currentDestPos,
+    distAU, trajectory,
+    midpointPos: {
+      x: departurePos.x + dir.nx * trajectory.flipDistAU,
+      y: departurePos.y + dir.ny * trajectory.flipDistAU,
+    },
+    direction: dir,
+    isRerouted: false,
+    waypoint: null,
+  };
+}
 
-  // Flip point: departure + accelDistAU along the direction vector
-  const midpointPos = {
-    x: departurePos.x + nx * trajectory.flipDistAU,
-    y: departurePos.y + ny * trajectory.flipDistAU,
+// ── Rerouted (two-leg) brachistochrone via solar exclusion tangent ────────────
+
+function computeRerouted(
+  originPlanet, destPlanet, departureDate, accelG,
+  T_depart, departurePos, currentDestPos,
+) {
+  // Waypoint W on the exclusion circle (fixed in space, independent of planets)
+  const waypoint = findSolarDetour(departurePos, currentDestPos, SOLAR_EXCLUSION_AU);
+
+  // Leg-1 distance (departure → W) is fixed; estimate total time for refinement
+  const d1 = distanceAU(departurePos, waypoint);
+  const t1est = solveBrachistochrone(d1, accelG);
+
+  const d2est   = distanceAU(waypoint, currentDestPos);
+  const t2est   = solveBrachistochrone(d2est, accelG);
+  const totalEst = t1est.coordTimeDays + t2est.coordTimeDays;
+
+  // Refine leg-2 destination with planet position at estimated arrival
+  const arrDateEst = addDays(departureDate, totalEst);
+  const arrPosEst  = planetPosition(destPlanet, toJ2000Century(arrDateEst));
+
+  const d2   = distanceAU(waypoint, arrPosEst);
+  const leg1 = solveBrachistochrone(d1, accelG);
+  const leg2 = solveBrachistochrone(d2, accelG);
+
+  const arrivalDate = addDays(departureDate, leg1.coordTimeDays + leg2.coordTimeDays);
+  const T_arrive    = toJ2000Century(arrivalDate);
+  const arrivalPos  = planetPosition(destPlanet, T_arrive);
+
+  const dir1 = unitVec(departurePos, waypoint);
+  const dir2 = unitVec(waypoint, arrivalPos);
+
+  // Combined trajectory summary (compatible with existing UI consumers)
+  const trajectory = {
+    coordTimeDays:  leg1.coordTimeDays  + leg2.coordTimeDays,
+    shipTimeDays:   leg1.shipTimeDays   + leg2.shipTimeDays,
+    maxSpeedC:      Math.max(leg1.maxSpeedC, leg2.maxSpeedC),
+    isCapped:       leg1.isCapped || leg2.isCapped,
+    deltaVKms:      leg1.deltaVKms + leg2.deltaVKms,
+    flipDistAU:     leg1.flipDistAU,
+    accelTimeDays:  leg1.accelTimeDays,
+    cruiseTimeDays: leg1.cruiseTimeDays + leg2.cruiseTimeDays,
+    accelDistAU:    leg1.accelDistAU,
   };
 
   return {
-    originPlanet,
-    destPlanet,
-    departureDate,
-    arrivalDate,
-    arrivalDateStr: formatDate(arrivalDate),
-    accelG,
-    T_depart,
-    T_arrive,
-    departurePos,
-    arrivalPos,
-    currentDestPos,
-    distAU,
+    originPlanet, destPlanet, departureDate, accelG,
+    arrivalDate, arrivalDateStr: formatDate(arrivalDate),
+    T_depart, T_arrive,
+    departurePos, arrivalPos, currentDestPos,
+    distAU: d1 + d2,
+    trajectory,
+    // For drawDepartureMarker / drawArrivalOverlay (leg-1 flip)
+    midpointPos: {
+      x: departurePos.x + dir1.nx * leg1.flipDistAU,
+      y: departurePos.y + dir1.ny * leg1.flipDistAU,
+    },
+    direction: dir1,
+    // Reroute fields
+    isRerouted: true,
+    isSmooth: false,
+    waypoint,
+    leg1, leg2,
+    leg1DistAU: d1,
+    leg2DistAU: d2,
+    direction1: dir1,
+    direction2: dir2,
+  };
+}
+
+// ── Rerouted smooth arc — single brachistochrone over the detour path ─────────
+
+function computeReroutedArc(
+  originPlanet, destPlanet, departureDate, accelG,
+  T_depart, departurePos, currentDestPos,
+) {
+  const waypoint = findSolarDetour(departurePos, currentDestPos, SOLAR_EXCLUSION_AU);
+  const d1 = distanceAU(departurePos, waypoint);
+
+  // Estimate total path length for destination refinement
+  const d2est    = distanceAU(waypoint, currentDestPos);
+  const trajEst  = solveBrachistochrone(d1 + d2est, accelG);
+  const arrDateEst = addDays(departureDate, trajEst.coordTimeDays);
+  const arrPosEst  = planetPosition(destPlanet, toJ2000Century(arrDateEst));
+
+  const d2         = distanceAU(waypoint, arrPosEst);
+  const d_total    = d1 + d2;
+  const trajectory = solveBrachistochrone(d_total, accelG);
+
+  const arrivalDate = addDays(departureDate, trajectory.coordTimeDays);
+  const T_arrive    = toJ2000Century(arrivalDate);
+  const arrivalPos  = planetPosition(destPlanet, T_arrive);
+
+  const dir1 = unitVec(departurePos, waypoint);
+  const dir2 = unitVec(waypoint, arrivalPos);
+
+  // Flip point position along the two-segment path (A→W→B)
+  const flipDist = trajectory.flipDistAU;
+  let midpointPos;
+  if (flipDist <= d1) {
+    const f = flipDist / d1;
+    midpointPos = {
+      x: departurePos.x + f * (waypoint.x - departurePos.x),
+      y: departurePos.y + f * (waypoint.y - departurePos.y),
+    };
+  } else {
+    const f = (flipDist - d1) / d2;
+    midpointPos = {
+      x: waypoint.x + f * (arrivalPos.x - waypoint.x),
+      y: waypoint.y + f * (arrivalPos.y - waypoint.y),
+    };
+  }
+
+  return {
+    originPlanet, destPlanet, departureDate, accelG,
+    arrivalDate, arrivalDateStr: formatDate(arrivalDate),
+    T_depart, T_arrive,
+    departurePos, arrivalPos, currentDestPos,
+    distAU: d_total,
     trajectory,
     midpointPos,
-    direction: { nx, ny },
+    direction: dir1,
+    isRerouted: true,
+    isSmooth: true,
+    waypoint,
+    leg1DistAU: d1,
+    leg2DistAU: d2,
+    direction1: dir1,
+    direction2: dir2,
   };
 }
