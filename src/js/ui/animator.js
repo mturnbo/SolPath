@@ -20,12 +20,13 @@ export function createAnimator(onTick, onComplete = null, onPlay = null, onReset
   let lastTs     = null;
   let rafId      = null;
   let mission    = null;
+  let speed      = 1;
 
   function tick(ts) {
     if (!playing) return;
     if (lastTs !== null) {
       const dt = (ts - lastTs) / 1000;               // seconds elapsed
-      tau = Math.min(1, tau + dt / ANIMATION_DURATION_S);
+      tau = Math.min(1, tau + dt * speed / ANIMATION_DURATION_S);
     }
     lastTs = ts;
     onTick(tau);
@@ -87,14 +88,25 @@ export function createAnimator(onTick, onComplete = null, onPlay = null, onReset
       : `T + ${formatDuration(elapsedDays)}`;
   }
 
+  function setSpeed(s) {
+    speed = s;
+    document.querySelectorAll('.btn-speed').forEach(btn => {
+      btn.classList.toggle('btn-speed--active', Number(btn.dataset.speed) === s);
+    });
+  }
+
   // Wire up buttons
   document.getElementById('btn-anim-play') ?.addEventListener('click', play);
   document.getElementById('btn-anim-pause')?.addEventListener('click', pause);
   document.getElementById('btn-anim-reset')?.addEventListener('click', reset);
 
+  document.querySelectorAll('.btn-speed').forEach(btn => {
+    btn.addEventListener('click', () => setSpeed(Number(btn.dataset.speed)));
+  });
+
   updateButtons();
 
-  return { play, pause, reset, setMission, getTau: () => tau };
+  return { play, pause, reset, setMission, setSpeed, getTau: () => tau };
 }
 
 /**
