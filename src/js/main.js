@@ -6,13 +6,11 @@ import { drawAllOrbits } from './render/orbits.js';
 import { drawAllPlanets, hitTestPlanet } from './render/planets.js';
 import { drawTrajectory, drawDepartureMarker, drawExclusionRing } from './render/trajectory.js';
 import { drawSpacecraft, spacecraftPosition } from './render/spacecraft.js';
-import { drawComparisonTrajectories, drawComparisonLegend } from './render/comparison.js';
 import { drawArrivalOverlay, triggerArrivalFlash, isFlashing } from './render/arrivalOverlay.js';
 import { drawDeparturePlaceholders } from './render/departurePlaceholders.js';
 import { initDatePicker } from './ui/datepicker.js';
 import { initControls, initZoomButtons } from './ui/controls.js';
 import { initMissionPanel } from './ui/panel.js';
-import { initComparisonPanel } from './ui/comparison.js';
 import { renderRelativity } from './ui/relativity.js';
 import { renderMissionInfo } from './ui/missionInfo.js';
 import { createAnimator, getSpacecraftState } from './ui/animator.js';
@@ -27,8 +25,6 @@ let savedCam         = null;
 let currentDate      = new Date();
 let T                = toJ2000Century(currentDate);
 let mission          = null;
-let comparisonMissions = [];
-let compareEnabled   = false;
 
 let missionParams = {
   originPlanet: PLANETS.find(p => p.name === 'Earth'),
@@ -131,13 +127,6 @@ function updateMission() {
   renderRelativity(mission.trajectory, `${originPlanet.name} → ${destPlanet.name}`, accelG);
 }
 
-function updateComparisons(activeAccels) {
-  const { originPlanet, destPlanet } = missionParams;
-  comparisonMissions = activeAccels.map(g =>
-    computeMission(originPlanet, destPlanet, currentDate, g)
-  );
-}
-
 // ── Rendering ─────────────────────────────────────────────────────────────────
 
 function resize() {
@@ -178,7 +167,7 @@ function draw(tau = 0) {
   const h = canvas.clientHeight;
   ctx.clearRect(0, 0, w, h);
 
-  if (tau > 0 && tau < 1 && mission && !compareEnabled) {
+  if (tau > 0 && tau < 1 && mission) {
     followCamera(tau, w, h);
   }
 
@@ -192,19 +181,15 @@ function draw(tau = 0) {
   drawStar();
   drawAllPlanets(ctx, cam, PLANETS, T_anim, hoveredPlanet);
 
-  if (compareEnabled && comparisonMissions.length > 0) {
-    drawComparisonTrajectories(ctx, cam, comparisonMissions);
-    drawComparisonLegend(ctx, w, comparisonMissions);
-  } else if (mission) {
-    if (mission.isRerouted) drawExclusionRing(ctx, cam);
-    drawDeparturePlaceholders(ctx, cam, mission, tau);
-    drawArrivalOverlay(ctx, cam, mission);
-    drawTrajectory(ctx, cam, mission);
-    drawDepartureMarker(ctx, cam, mission);
+  if (mission.isRerouted) drawExclusionRing(ctx, cam);
+  drawDeparturePlaceholders(ctx, cam, mission, tau);
+  drawArrivalOverlay(ctx, cam, mission);
+  drawTrajectory(ctx, cam, mission);
+  drawDepartureMarker(ctx, cam, mission);
 
-    const sc = getSpacecraftState(tau, mission);
-    if (sc) drawSpacecraft(ctx, cam, sc.pos, sc.dir);
-  }
+  const sc = getSpacecraftState(tau, mission);
+  if (sc) drawSpacecraft(ctx, cam, sc.pos, sc.dir);
+
 }
 
 // ── Controls ──────────────────────────────────────────────────────────────────
@@ -215,21 +200,13 @@ initZoomButtons(canvas, cam, () => draw(animator.getTau()));
 initMissionPanel(params => {
   missionParams = params;
   updateMission();
-  if (compareEnabled) updateComparisons(comparison.getActiveAccels());
   draw(0);
-});
-
-const comparison = initComparisonPanel(({ enabled, activeAccels }) => {
-  compareEnabled = enabled;
-  if (enabled) updateComparisons(activeAccels);
-  draw(animator.getTau());
 });
 
 initDatePicker(date => {
   currentDate = date;
   T           = toJ2000Century(date);
   updateMission();
-  if (compareEnabled) updateComparisons(comparison.getActiveAccels());
   draw(0);
 });
 

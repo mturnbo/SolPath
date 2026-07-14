@@ -1,10 +1,14 @@
-# Changelog
+ # Changelog
 
 All notable changes to SolPath will be documented here.
 
 ---
 
 ## [Unreleased]
+
+### PR 21 — Comparison mode cleanup
+- Remove unused comparison overlay
+- Simplify mission computation
 
 ### PR 20 — Performance pass
 - RequestAnimationFrame render loop with dirty-flag redraws

@@ -72,16 +72,15 @@ SolPath/
         │   ├── trajectory.js            # Path renderer (direct, stop, smooth arc)
         │   ├── spacecraft.js            # Ship position + glyph
         │   ├── arrivalOverlay.js        # Arrival flash effect
-        │   ├── departurePlaceholders.js # Ghost markers at departure positions
-        │   └── comparison.js            # Multi-acceleration overlay
+        │   └── departurePlaceholders.js # Ghost markers at departure positions
         └── ui/
             ├── panel.js                 # Mission control panel
             ├── missionInfo.js           # Mission Summary section
             ├── relativity.js            # Time Dilation section
             ├── datepicker.js            # Departure date controls
             ├── controls.js              # Zoom / pan input handling
-            ├── animator.js              # Spacecraft animation loop
-            └── comparison.js            # Compare Accelerations panel
+            └── animator.js              # Spacecraft animation loop
+
 ```
 
 ## Physics
