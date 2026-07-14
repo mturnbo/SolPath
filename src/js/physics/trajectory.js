@@ -17,6 +17,9 @@ const MAX_SPEED_FRACTION = 0.1;
 
 const C_MAX = C * MAX_SPEED_FRACTION;
 
+/** Duration of the flip maneuver (attitude rotation) in seconds. */
+const FLIP_DURATION_S = 4 * 3600;
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /**
@@ -72,22 +75,31 @@ export function solveBrachistochrone(distAU, accelG) {
   const vPeak         = a * tHalfUncapped;        // m/s
 
   if (vPeak <= C_MAX) {
-    // ── Standard two-phase flip-and-burn ────────────────────────────────────
-    const tHalf   = tHalfUncapped;
-    const tCoord  = 2 * tHalf;
-    const tShip   = 2 * (C / a) * Math.asinh(a * tHalf / C);
-    const maxSpeedC = vPeak / C;
+    // ── Three-phase: accelerate → coast/flip → decelerate ───────────────────
+    // With a FLIP_DURATION_S coast between the two thrust legs, the total
+    // distance equation is: a·tHalf·(tHalf + tFlip) = d
+    // Solving the quadratic: tHalf² + tFlip·tHalf − d/a = 0
+    const tFlip  = FLIP_DURATION_S;
+    const tHalf  = (-tFlip + Math.sqrt(tFlip * tFlip + 4 * d / a)) / 2;
+    const vPk    = a * tHalf;
+    const dAccel = 0.5 * a * tHalf * tHalf;
+    const tCoord = 2 * tHalf + tFlip;
+
+    const tShipAccel = (C / a) * Math.asinh(a * tHalf / C);
+    const tShipFlip  = tFlip * Math.sqrt(1 - (vPk / C) ** 2);
+    const tShip      = 2 * tShipAccel + tShipFlip;
 
     return {
       coordTimeDays:  tCoord / DAY_S,
       shipTimeDays:   tShip  / DAY_S,
-      flipDistAU:     distAU / 2,
-      maxSpeedC,
+      flipDistAU:     dAccel / AU_M,
+      maxSpeedC:      vPk / C,
       isCapped:       false,
       accelTimeDays:  tHalf  / DAY_S,
+      flipTimeDays:   tFlip  / DAY_S,
       cruiseTimeDays: 0,
-      accelDistAU:    distAU / 2,
-      deltaVKms:      (2 * vPeak) / 1000,
+      accelDistAU:    dAccel / AU_M,
+      deltaVKms:      (2 * vPk) / 1000,
     };
   }
 
@@ -109,6 +121,10 @@ export function solveBrachistochrone(distAU, accelG) {
   const tShipCruise = tCruise / gamma;
   const tShip      = 2 * tShipAccel + tShipCruise;
 
+  // Flip is embedded at the end of the cruise window; steals tFlipCapped seconds
+  // of cruise coast time — total distance and trip time are unchanged.
+  const tFlipCapped = Math.min(FLIP_DURATION_S, tCruise * 0.9);
+
   return {
     coordTimeDays:  tCoord / DAY_S,
     shipTimeDays:   tShip  / DAY_S,
@@ -117,6 +133,7 @@ export function solveBrachistochrone(distAU, accelG) {
     maxSpeedC:      MAX_SPEED_FRACTION,
     isCapped:       true,
     accelTimeDays:  tAccel / DAY_S,
+    flipTimeDays:   tFlipCapped / DAY_S,
     cruiseTimeDays: tCruise / DAY_S,
     accelDistAU:    dAccel / AU_M,
   };
