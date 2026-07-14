@@ -14,7 +14,7 @@ const ANIMATION_DURATION_S = 10;
  * @param {function} onTick  - called with current tau (0–1) on each frame
  * @returns {Animator}
  */
-export function createAnimator(onTick, onComplete = null) {
+export function createAnimator(onTick, onComplete = null, onPlay = null, onReset = null) {
   let playing    = false;
   let tau        = 0;
   let lastTs     = null;
@@ -41,11 +41,13 @@ export function createAnimator(onTick, onComplete = null) {
   }
 
   function play() {
+    const wasAtStart = tau === 0;
     if (tau >= 1) tau = 0;
     playing = true;
     lastTs  = null;
     rafId   = requestAnimationFrame(tick);
     updateButtons();
+    if (onPlay && wasAtStart) onPlay();
   }
 
   function pause() {
@@ -57,6 +59,7 @@ export function createAnimator(onTick, onComplete = null) {
   function reset() {
     pause();
     tau = 0;
+    if (onReset) onReset();
     onTick(tau);
     updateElapsed(tau, mission);
     updateButtons();
