@@ -1,5 +1,6 @@
 import { worldToScreen } from './camera.js';
 import { SOLAR_EXCLUSION_AU } from '../physics/trajectory.js';
+import { schwarzschildRadiusM, tidalAccel } from '../physics/solar.js';
 
 const ACCEL_COLOR   = '#4a90e2';
 const FLIP_COLOR    = '#ffffff';
@@ -8,9 +9,25 @@ const DETOUR_COLOR  = '#ff9040';
 
 // ── Solar exclusion ring ──────────────────────────────────────────────────────
 
+const SUPERSCRIPTS = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+                       '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+
+function formatSci(value) {
+  const [mantissa, exp] = value.toExponential(2).split('e');
+  const sup = String(parseInt(exp, 10)).split('').map(c => SUPERSCRIPTS[c]).join('');
+  return `${mantissa}×10${sup}`;
+}
+
+const SUN_INFO_LINES = [
+  `Sol · exclusion ${SOLAR_EXCLUSION_AU} AU`,
+  `Schwarzschild radius ${(schwarzschildRadiusM() / 1000).toFixed(2)} km`,
+  `Tidal force ${formatSci(tidalAccel(SOLAR_EXCLUSION_AU))} m/s² per m`,
+];
+
 /**
- * Draw the solar exclusion boundary — a dashed ring at SOLAR_EXCLUSION_AU.
- * Only drawn when the trajectory was rerouted.
+ * Draw the solar exclusion boundary — a dashed ring at SOLAR_EXCLUSION_AU —
+ * with a callout showing the Sun's Schwarzschild radius and the tidal force
+ * at the ring. Only drawn when the trajectory was rerouted.
  */
 export function drawExclusionRing(ctx, cam) {
   const { sx: cx, sy: cy } = worldToScreen(cam, 0, 0);
@@ -25,6 +42,29 @@ export function drawExclusionRing(ctx, cam) {
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.stroke();
   ctx.setLineDash([]);
+
+  // Skip the callout when the ring is too small on screen to anchor legibly.
+  if (r >= 40) {
+    const ax = cx + r * Math.SQRT1_2;
+    const ay = cy + r * Math.SQRT1_2;
+
+    ctx.strokeStyle = DETOUR_COLOR;
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(ax + 12, ay + 12);
+    ctx.stroke();
+
+    ctx.font         = '10px var(--font-sans, system-ui)';
+    ctx.fillStyle    = DETOUR_COLOR;
+    ctx.globalAlpha  = 0.75;
+    ctx.textAlign    = 'left';
+    ctx.textBaseline = 'top';
+    SUN_INFO_LINES.forEach((line, i) => {
+      ctx.fillText(line, ax + 16, ay + 10 + i * 13);
+    });
+  }
+
   ctx.restore();
 }
 
