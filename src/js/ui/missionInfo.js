@@ -14,7 +14,7 @@ export function renderMissionInfo(mission) {
           distAU, accelG, trajectory } = mission;
 
   const { coordTimeDays, shipTimeDays, maxSpeedC, isCapped,
-          flipDistAU, accelTimeDays, cruiseTimeDays, deltaVKms } = trajectory;
+          flipDistAU, accelTimeDays, flipTimeDays, cruiseTimeDays, deltaVKms } = trajectory;
 
   const deltaVStr = deltaVKms >= 1000
     ? `${(deltaVKms / 1000).toFixed(2)} Mm/s`
@@ -99,6 +99,10 @@ export function renderMissionInfo(mission) {
     <div class="info-row">
       <span class="info-key">Accel phase</span>
       <span class="info-val">${formatDuration(accelTimeDays)} × 2</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Flip maneuver</span>
+      <span class="info-val">${formatDuration(flipTimeDays || 0)}</span>
     </div>
     ${cruiseRow}
 

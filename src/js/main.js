@@ -33,18 +33,75 @@ let missionParams = {
   detourMode:   'stop',
 };
 
+// ── Thrust phase & flip progress ──────────────────────────────────────────────
+
+function legThrustPhase(t, traj) {
+  const T = traj.coordTimeDays;
+  const α = traj.accelTimeDays / T;
+  const φ = (traj.flipTimeDays || 0) / T;
+
+  if (!traj.isCapped) {
+    if (t <= α)         return 'accel';
+    if (t <= α + φ)     return 'flip';
+    return 'decel';
+  }
+
+  const β = traj.cruiseTimeDays / T;
+  if (t <= α)           return 'accel';
+  if (t <= α + β - φ)  return 'cruise';
+  if (t <= α + β)       return 'flip';
+  return 'decel';
+}
+
+function legFlipProgress(t, traj) {
+  const T = traj.coordTimeDays;
+  const α = traj.accelTimeDays / T;
+  const φ = (traj.flipTimeDays || 0) / T;
+  if (!traj.isCapped) {
+    if (φ <= 0 || t < α || t > α + φ) return 0;
+    return (t - α) / φ;
+  }
+  const β = traj.cruiseTimeDays / T;
+  const flipStart = α + β - φ;
+  if (φ <= 0 || t < flipStart || t > α + β) return 0;
+  return (t - flipStart) / φ;
+}
+
+function getThrustPhase(tau, mission) {
+  if (mission.isRerouted && !mission.isSmooth) {
+    const tau1 = mission.leg1.coordTimeDays / mission.trajectory.coordTimeDays;
+    if (tau <= tau1) return legThrustPhase(tau / tau1, mission.leg1);
+    return legThrustPhase((tau - tau1) / (1 - tau1), mission.leg2);
+  }
+  return legThrustPhase(tau, mission.trajectory);
+}
+
+function getFlipProgress(tau, mission) {
+  if (mission.isRerouted && !mission.isSmooth) {
+    const tau1 = mission.leg1.coordTimeDays / mission.trajectory.coordTimeDays;
+    if (tau <= tau1) return legFlipProgress(tau / tau1, mission.leg1);
+    return legFlipProgress((tau - tau1) / (1 - tau1), mission.leg2);
+  }
+  return legFlipProgress(tau, mission.trajectory);
+}
+
 // ── Follow camera ─────────────────────────────────────────────────────────────
 
 function followCamera(tau, w, h) {
   const pos = spacecraftPosition(tau, mission);
 
-  // Use the leg-1/leg-2 boundary as the zoom-out target for stop-mode detours;
-  // for everything else the brachistochrone flip at tau=0.5 is close enough.
-  let flipTau = 0.5;
+  // Camera zooms out until the ship starts decelerating, then holds.
+  let flipTau;
   if (mission.isRerouted && !mission.isSmooth) {
     flipTau = mission.leg1.coordTimeDays / mission.trajectory.coordTimeDays;
-  } else if (mission.trajectory.isCapped) {
-    flipTau = mission.trajectory.accelTimeDays / mission.trajectory.coordTimeDays;
+  } else {
+    const traj = mission.trajectory;
+    const T    = traj.coordTimeDays;
+    if (traj.isCapped) {
+      flipTau = (traj.accelTimeDays + traj.cruiseTimeDays) / T;
+    } else {
+      flipTau = (traj.accelTimeDays + (traj.flipTimeDays || 0)) / T;
+    }
   }
 
   // Near view: 0.5 AU minimum radius around the ship, scaled up for long trips.
@@ -181,14 +238,19 @@ function draw(tau = 0) {
   drawStar();
   drawAllPlanets(ctx, cam, PLANETS, T_anim, hoveredPlanet);
 
-  if (mission.isRerouted) drawExclusionRing(ctx, cam);
-  drawDeparturePlaceholders(ctx, cam, mission, tau);
-  drawArrivalOverlay(ctx, cam, mission);
-  drawTrajectory(ctx, cam, mission);
-  drawDepartureMarker(ctx, cam, mission);
+  if (mission) {
+    if (mission.isRerouted) drawExclusionRing(ctx, cam);
+    drawDeparturePlaceholders(ctx, cam, mission, tau);
+    drawArrivalOverlay(ctx, cam, mission);
+    drawTrajectory(ctx, cam, mission);
+    drawDepartureMarker(ctx, cam, mission);
 
-  const sc = getSpacecraftState(tau, mission);
-  if (sc) drawSpacecraft(ctx, cam, sc.pos, sc.dir);
+    const sc = getSpacecraftState(tau, mission);
+    if (sc) {
+      const phase = getThrustPhase(tau, mission);
+      drawSpacecraft(ctx, cam, sc.pos, sc.dir, phase, getFlipProgress(tau, mission));
+    }
+  }
 
 }
 

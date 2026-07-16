@@ -261,6 +261,35 @@ body {
   color: var(--color-accent);
 }
 
+.anim-speed {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.btn-speed {
+  flex: 1;
+  height: 24px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.btn-speed:hover:not(.btn-speed--active) {
+  background: var(--color-border);
+  border-color: var(--color-accent);
+}
+
+.btn-speed--active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #000;
+}
+
 /* ── Mission info panel ── */
 
 .info-route {

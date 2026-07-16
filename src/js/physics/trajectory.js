@@ -17,6 +17,9 @@ const MAX_SPEED_FRACTION = 0.1;
 
 const C_MAX = C * MAX_SPEED_FRACTION;
 
+/** Duration of the flip maneuver (attitude rotation) in seconds. */
+const FLIP_DURATION_S = 4 * 3600;
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /**
@@ -72,22 +75,31 @@ export function solveBrachistochrone(distAU, accelG) {
   const vPeak         = a * tHalfUncapped;        // m/s
 
   if (vPeak <= C_MAX) {
-    // ── Standard two-phase flip-and-burn ────────────────────────────────────
-    const tHalf   = tHalfUncapped;
-    const tCoord  = 2 * tHalf;
-    const tShip   = 2 * (C / a) * Math.asinh(a * tHalf / C);
-    const maxSpeedC = vPeak / C;
+    // ── Three-phase: accelerate → coast/flip → decelerate ───────────────────
+    // With a FLIP_DURATION_S coast between the two thrust legs, the total
+    // distance equation is: a·tHalf·(tHalf + tFlip) = d
+    // Solving the quadratic: tHalf² + tFlip·tHalf − d/a = 0
+    const tFlip  = FLIP_DURATION_S;
+    const tHalf  = (-tFlip + Math.sqrt(tFlip * tFlip + 4 * d / a)) / 2;
+    const vPk    = a * tHalf;
+    const dAccel = 0.5 * a * tHalf * tHalf;
+    const tCoord = 2 * tHalf + tFlip;
+
+    const tShipAccel = (C / a) * Math.asinh(a * tHalf / C);
+    const tShipFlip  = tFlip * Math.sqrt(1 - (vPk / C) ** 2);
+    const tShip      = 2 * tShipAccel + tShipFlip;
 
     return {
       coordTimeDays:  tCoord / DAY_S,
       shipTimeDays:   tShip  / DAY_S,
-      flipDistAU:     distAU / 2,
-      maxSpeedC,
+      flipDistAU:     dAccel / AU_M,
+      maxSpeedC:      vPk / C,
       isCapped:       false,
       accelTimeDays:  tHalf  / DAY_S,
+      flipTimeDays:   tFlip  / DAY_S,
       cruiseTimeDays: 0,
-      accelDistAU:    distAU / 2,
-      deltaVKms:      (2 * vPeak) / 1000,
+      accelDistAU:    dAccel / AU_M,
+      deltaVKms:      (2 * vPk) / 1000,
     };
   }
 
@@ -109,6 +121,10 @@ export function solveBrachistochrone(distAU, accelG) {
   const tShipCruise = tCruise / gamma;
   const tShip      = 2 * tShipAccel + tShipCruise;
 
+  // Flip is embedded at the end of the cruise window; steals tFlipCapped seconds
+  // of cruise coast time — total distance and trip time are unchanged.
+  const tFlipCapped = Math.min(FLIP_DURATION_S, tCruise * 0.9);
+
   return {
     coordTimeDays:  tCoord / DAY_S,
     shipTimeDays:   tShip  / DAY_S,
@@ -117,6 +133,7 @@ export function solveBrachistochrone(distAU, accelG) {
     maxSpeedC:      MAX_SPEED_FRACTION,
     isCapped:       true,
     accelTimeDays:  tAccel / DAY_S,
+    flipTimeDays:   tFlipCapped / DAY_S,
     cruiseTimeDays: tCruise / DAY_S,
     accelDistAU:    dAccel / AU_M,
   };
@@ -155,12 +172,68 @@ export function closestSolarApproach(A, B) {
  * @returns {{ x: number, y: number }}  waypoint in AU
  */
 export function findSolarDetour(A, B, R) {
+  // The correct waypoint W is the intersection of the tangent lines from A and B
+  // to the exclusion circle.  This guarantees both legs A→W and W→B are tangent
+  // to the circle (minimum distance exactly R) rather than cutting through it.
+  //
+  // For point P at distance d from Sol, at angle θ, the two tangent touch points
+  // on the circle (radius R) are at angles θ ± acos(R/d) from Sol.
+  // The corresponding tangent line from P passes through that touch point.
+  // The intersection of the two tangent lines (one from A, one from B, on the
+  // same side) is the safe waypoint W.
+
+  const dA = Math.hypot(A.x, A.y);
+  const dB = Math.hypot(B.x, B.y);
+  const thetaA = Math.atan2(A.y, A.x);
+  const thetaB = Math.atan2(B.y, B.x);
+  const alphaA = Math.acos(Math.min(1, R / dA));
+  const alphaB = Math.acos(Math.min(1, R / dB));
+
+  // Intersection of line through P1 toward T1 with line through P2 toward T2.
+  function intersect(P1, T1, P2, T2) {
+    const d1x = T1.x - P1.x, d1y = T1.y - P1.y;
+    const d2x = T2.x - P2.x, d2y = T2.y - P2.y;
+    const det = d2x * d1y - d1x * d2y;
+    if (Math.abs(det) < 1e-12) return null;
+    const dx = P2.x - P1.x, dy = P2.y - P1.y;
+    const t = (d2x * dy - dx * d2y) / det;
+    return { x: P1.x + t * d1x, y: P1.y + t * d1y };
+  }
+
+  // Time-proxy cost for brachistochrone: T ∝ √d, so minimise √|AW| + √|WB|.
+  function cost(W) {
+    return Math.sqrt(Math.hypot(W.x - A.x, W.y - A.y))
+         + Math.sqrt(Math.hypot(B.x - W.x, B.y - W.y));
+  }
+
+  let best = null;
+
+  for (const sA of [+1, -1]) {
+    for (const sB of [+1, -1]) {
+      const TA = {
+        x: R * Math.cos(thetaA + sA * alphaA),
+        y: R * Math.sin(thetaA + sA * alphaA),
+      };
+      const TB = {
+        x: R * Math.cos(thetaB + sB * alphaB),
+        y: R * Math.sin(thetaB + sB * alphaB),
+      };
+      const W = intersect(A, TA, B, TB);
+      if (!W) continue;
+      if (Math.hypot(W.x, W.y) < R * 0.999) continue; // W inside circle — invalid
+      const c = cost(W);
+      if (!best || c < best.c) best = { W, c };
+    }
+  }
+
+  if (best) return best.W;
+
+  // Fallback: ternary search on the circle (handles degenerate geometry).
   function f(theta) {
     const Wx = R * Math.cos(theta), Wy = R * Math.sin(theta);
     return Math.sqrt(Math.hypot(A.x - Wx, A.y - Wy))
          + Math.sqrt(Math.hypot(B.x - Wx, B.y - Wy));
   }
-
   function ternarySearch(lo, hi) {
     for (let i = 0; i < 64; i++) {
       const m1 = lo + (hi - lo) / 3;
@@ -169,15 +242,12 @@ export function findSolarDetour(A, B, R) {
     }
     return (lo + hi) / 2;
   }
-
-  // Split at the angle toward the foot of the perpendicular from Sol to AB.
   const dx = B.x - A.x, dy = B.y - A.y;
   const lenSq = dx * dx + dy * dy;
   const tFoot = -(A.x * dx + A.y * dy) / lenSq;
   const phiC  = Math.atan2(A.y + tFoot * dy, A.x + tFoot * dx);
-
-  const th1 = ternarySearch(phiC - Math.PI / 2, phiC + Math.PI / 2);       // near side
-  const th2 = ternarySearch(phiC + Math.PI / 2, phiC + 3 * Math.PI / 2);   // far side
+  const th1 = ternarySearch(phiC - Math.PI / 2, phiC + Math.PI / 2);
+  const th2 = ternarySearch(phiC + Math.PI / 2, phiC + 3 * Math.PI / 2);
   const theta = f(th1) <= f(th2) ? th1 : th2;
   return { x: R * Math.cos(theta), y: R * Math.sin(theta) };
 }
