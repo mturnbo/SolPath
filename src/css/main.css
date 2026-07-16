@@ -53,6 +53,26 @@ body {
 #header .tagline {
   font-size: 12px;
   color: var(--color-text-muted);
+  flex: 1;
+}
+
+.btn-share {
+  margin-left: auto;
+  height: 28px;
+  padding: 0 10px;
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.btn-share:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 /* ── Main layout ── */
