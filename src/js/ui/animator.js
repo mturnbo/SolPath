@@ -31,6 +31,7 @@ export function createAnimator(onTick, onComplete = null, onPlay = null, onReset
     lastTs = ts;
     onTick(tau);
     updateElapsed(tau, mission);
+    updateScrub(tau);
 
     if (tau < 1) {
       rafId = requestAnimationFrame(tick);
@@ -63,6 +64,7 @@ export function createAnimator(onTick, onComplete = null, onPlay = null, onReset
     if (onReset) onReset();
     onTick(tau);
     updateElapsed(tau, mission);
+    updateScrub(tau);
     updateButtons();
   }
 
@@ -88,6 +90,13 @@ export function createAnimator(onTick, onComplete = null, onPlay = null, onReset
       : `T + ${formatDuration(elapsedDays)}`;
   }
 
+  function updateScrub(t) {
+    const el = document.getElementById('anim-scrub');
+    if (!el) return;
+    el.value = Math.round(t * 1000);
+    el.style.setProperty('--scrub-pct', `${t * 100}%`);
+  }
+
   function setSpeed(s) {
     speed = s;
     document.querySelectorAll('.btn-speed').forEach(btn => {
@@ -103,6 +112,28 @@ export function createAnimator(onTick, onComplete = null, onPlay = null, onReset
   document.querySelectorAll('.btn-speed').forEach(btn => {
     btn.addEventListener('click', () => setSpeed(Number(btn.dataset.speed)));
   });
+
+  // Scrub bar — drag to seek
+  const scrubEl = document.getElementById('anim-scrub');
+  if (scrubEl) {
+    let scrubWasPlaying = false;
+
+    scrubEl.addEventListener('pointerdown', () => {
+      scrubWasPlaying = playing;
+      pause();
+    });
+
+    scrubEl.addEventListener('input', () => {
+      tau = scrubEl.value / 1000;
+      onTick(tau);
+      updateElapsed(tau, mission);
+      updateScrub(tau);
+    });
+
+    scrubEl.addEventListener('pointerup', () => {
+      if (scrubWasPlaying && tau < 1) play();
+    });
+  }
 
   updateButtons();
 

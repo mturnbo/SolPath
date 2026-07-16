@@ -290,6 +290,50 @@ body {
   color: #000;
 }
 
+/* ── Scrub bar ── */
+
+.anim-scrub {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  /* Filled portion driven by --scrub-pct (updated via JS) */
+  background: linear-gradient(
+    to right,
+    var(--color-accent) var(--scrub-pct, 0%),
+    var(--color-border) var(--scrub-pct, 0%)
+  );
+  cursor: pointer;
+  margin-top: 10px;
+  outline: none;
+  border: none;
+}
+
+.anim-scrub::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.anim-scrub::-webkit-slider-thumb:hover {
+  transform: scale(1.3);
+}
+
+.anim-scrub::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  border: none;
+  cursor: pointer;
+}
+
 /* ── Mission info panel ── */
 
 .info-route {
