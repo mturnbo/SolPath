@@ -6,6 +6,7 @@ import { drawAllOrbits } from './render/orbits.js';
 import { drawAllPlanets, hitTestPlanet } from './render/planets.js';
 import { drawTrajectory, drawDepartureMarker, drawExclusionRing } from './render/trajectory.js';
 import { drawSpacecraft, spacecraftPosition } from './render/spacecraft.js';
+import { drawStarfield } from './render/starfield.js';
 import { drawArrivalOverlay, triggerArrivalFlash, isFlashing } from './render/arrivalOverlay.js';
 import { drawDeparturePlaceholders } from './render/departurePlaceholders.js';
 import { initDatePicker } from './ui/datepicker.js';
@@ -223,6 +224,7 @@ function draw(tau = 0) {
   const w = canvas.clientWidth;
   const h = canvas.clientHeight;
   ctx.clearRect(0, 0, w, h);
+  drawStarfield(ctx, cam, w, h);
 
   if (tau > 0 && tau < 1 && mission) {
     followCamera(tau, w, h);
