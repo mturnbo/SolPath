@@ -308,17 +308,17 @@ const datePicker = initDatePicker(date => {
   else if (changed) updatePermalink();
 })();
 
-// Share button — adapt label and tooltip for desktop vs. browser context
 const shareBtn = document.getElementById('btn-share');
-if (shareBtn && isElectron) {
-  shareBtn.title = 'Copy mission parameters to clipboard';
+if (isElectron) {
+  shareBtn?.remove();
+} else {
+  shareBtn?.addEventListener('click', async function () {
+    await copyPermalink();
+    const orig = this.textContent;
+    this.textContent = 'Copied!';
+    setTimeout(() => { this.textContent = orig; }, 1500);
+  });
 }
-shareBtn?.addEventListener('click', async function () {
-  await copyPermalink();
-  const orig = this.textContent;
-  this.textContent = 'Copied!';
-  setTimeout(() => { this.textContent = orig; }, 1500);
-});
 
 // ── Hover ─────────────────────────────────────────────────────────────────────
 
