@@ -15,6 +15,7 @@ import { initMissionPanel } from './ui/panel.js';
 import { renderRelativity } from './ui/relativity.js';
 import { renderMissionInfo } from './ui/missionInfo.js';
 import { createAnimator, getSpacecraftState } from './ui/animator.js';
+import { readParams, writeParams, copyPermalink } from './ui/permalink.js';
 
 const canvas = document.getElementById('solar-system');
 const ctx    = canvas.getContext('2d');
@@ -261,17 +262,58 @@ function draw(tau = 0) {
 initControls(canvas, cam, () => draw(animator.getTau()));
 initZoomButtons(canvas, cam, () => draw(animator.getTau()));
 
-initMissionPanel(params => {
+function updatePermalink() {
+  writeParams({
+    from:   missionParams.originPlanet.name,
+    to:     missionParams.destPlanet.name,
+    accel:  missionParams.accelG,
+    detour: missionParams.detourMode,
+    date:   currentDate,
+  });
+}
+
+const missionPanel = initMissionPanel(params => {
   missionParams = params;
   updateMission();
   draw(0);
+  updatePermalink();
 });
 
-initDatePicker(date => {
+const datePicker = initDatePicker(date => {
   currentDate = date;
   T           = toJ2000Century(date);
   updateMission();
   draw(0);
+  updatePermalink();
+});
+
+// Apply any parameters encoded in the URL on first load
+(function applyUrlParams() {
+  const p = readParams();
+  let changed = false;
+  if (p.from)   { document.getElementById('select-origin').value       = p.from;   changed = true; }
+  if (p.to)     { document.getElementById('select-dest').value         = p.to;     changed = true; }
+  if (p.accel)  {
+    const sl = document.getElementById('slider-accel');
+    sl.value = p.accel;
+    sl.dispatchEvent(new Event('input'));  // refreshes the accel label
+    changed = true;
+  }
+  if (p.detour) { document.getElementById('select-detour-mode').value  = p.detour; changed = true; }
+  if (changed) {
+    missionParams = missionPanel.getState();
+    updateMission();
+  }
+  if (p.date) datePicker.setDate(p.date);  // triggers updateMission + updatePermalink
+  else if (changed) updatePermalink();
+})();
+
+// Copy-link button
+document.getElementById('btn-share')?.addEventListener('click', async function () {
+  await copyPermalink();
+  const orig = this.textContent;
+  this.textContent = 'Copied!';
+  setTimeout(() => { this.textContent = orig; }, 1500);
 });
 
 // ── Hover ─────────────────────────────────────────────────────────────────────
@@ -299,3 +341,4 @@ canvas.addEventListener('mouseleave', () => {
 window.addEventListener('resize', resize);
 resize();
 updateMission();
+updatePermalink();
