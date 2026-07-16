@@ -54,10 +54,20 @@ export function writeParams({ from, to, accel, detour, date }) {
   history.replaceState(null, '', `${location.pathname}?${p}`);
 }
 
+// Detect Electron renderer by user-agent; avoids needing nodeIntegration.
+const isElectron = /Electron/.test(navigator.userAgent);
+
 /**
- * Copy the current page URL (including mission params) to the clipboard.
- * Returns a promise that resolves once the copy is complete.
+ * Copy a shareable representation of the current mission to the clipboard.
+ *
+ * In a browser this copies the full URL. In Electron (where the address bar
+ * shows a file:// path that isn't shareable) it copies only the query-string
+ * params so another user can paste them as launch args or share them as text.
  */
 export function copyPermalink() {
-  return navigator.clipboard.writeText(location.href);
+  const text = isElectron ? location.search : location.href;
+  return navigator.clipboard.writeText(text);
 }
+
+/** True when running inside the Electron desktop shell. */
+export { isElectron };

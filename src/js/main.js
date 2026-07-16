@@ -15,7 +15,7 @@ import { initMissionPanel } from './ui/panel.js';
 import { renderRelativity } from './ui/relativity.js';
 import { renderMissionInfo } from './ui/missionInfo.js';
 import { createAnimator, getSpacecraftState } from './ui/animator.js';
-import { readParams, writeParams, copyPermalink } from './ui/permalink.js';
+import { readParams, writeParams, copyPermalink, isElectron } from './ui/permalink.js';
 
 const canvas = document.getElementById('solar-system');
 const ctx    = canvas.getContext('2d');
@@ -308,8 +308,12 @@ const datePicker = initDatePicker(date => {
   else if (changed) updatePermalink();
 })();
 
-// Copy-link button
-document.getElementById('btn-share')?.addEventListener('click', async function () {
+// Share button — adapt label and tooltip for desktop vs. browser context
+const shareBtn = document.getElementById('btn-share');
+if (shareBtn && isElectron) {
+  shareBtn.title = 'Copy mission parameters to clipboard';
+}
+shareBtn?.addEventListener('click', async function () {
   await copyPermalink();
   const orig = this.textContent;
   this.textContent = 'Copied!';
