@@ -146,7 +146,9 @@
         <h3>Flip And Burn</h3>
         <p>
           A constant-thrust ship doesn't coast. It accelerates toward the target for the
-          first half of the trip, performs a 180° flip maneuver, then decelerates for the
+          first half of the trip, performs a
+          <a href="#" class="modal-topic-link" data-topic="flip">180° flip maneuver</a>,
+          then decelerates for the
           second half, arriving at rest relative to the destination. The animation shows
           the full sequence: the exhaust plume, the mid-course flip, and the deceleration
           burn. At accelerations near 1 g, even Mars is only days away.
@@ -176,7 +178,9 @@
         <p>
           Every mission reports both observer time and ship time. At high accelerations
           over long distances, the ship's peak speed becomes a meaningful fraction of the
-          speed of light, and the Time Dilation panel shows the Lorentz factor and the
+          speed of light, and the
+          <a href="#" class="modal-topic-link" data-topic="timedilation">Time Dilation</a>
+          panel shows the Lorentz factor and the
           time saved by the crew.
         </p>
 
@@ -212,7 +216,9 @@
             which is why the outer planets stay surprisingly reachable at 1 g.
           </p>
           <p>
-            The catch is delta-v. A traditional Hohmann transfer to Mars needs a few
+            The catch is
+            <a href="#" class="modal-topic-link" data-topic="deltav">delta-v</a>.
+            A traditional Hohmann transfer to Mars needs a few
             km/s and months of coasting; a 1 g brachistochrone needs thousands of km/s —
             far beyond chemical rockets. It's the domain of fusion torches and other
             speculative drives, which is what makes it fun to plan for.
@@ -262,6 +268,85 @@
             radial metre, 2<em>GM</em>/<em>r</em>³ — about 10⁻¹² m/s² at the ring.
             Utterly negligible for a spacecraft; near a stellar-mass black hole's
             horizon the same formula is what tears things apart.
+          </p>
+        </div>
+
+        <div class="modal-page" data-page="deltav" hidden>
+          <a href="#" class="modal-back">&#8592; Back</a>
+          <h3>Delta-v</h3>
+          <p>
+            Delta-v (Δv) is the total change in velocity a mission demands — every
+            speed-up, slow-down, and course change added together. It's the true
+            currency of spaceflight: the rocket equation says the propellant needed
+            grows <em>exponentially</em> with the ratio of Δv to exhaust velocity, so
+            small increases in Δv quickly become enormous increases in fuel.
+          </p>
+          <p>
+            A brachistochrone spends the entire trip thrusting, so its Δv is roughly
+            twice the peak speed: accelerate to it, then shed all of it again. For
+            Earth → Mars at 1 g that's a few megameters per second — which is why the
+            Mission Summary quotes Δv in Mm/s, a unit no chemical rocket will ever
+            need. A Hohmann transfer to Mars, by comparison, costs about 6 km/s:
+            roughly a thousand times less.
+          </p>
+          <p>
+            Chemical engines exhaust at ~4.5 km/s, so a Mm/s-class budget is hopeless
+            for them — the propellant would outweigh the observable universe. Constant
+            thrust at 1 g assumes something far beyond today's engines: fusion torches,
+            beamed power, or other drives that trade science fiction for arithmetic.
+          </p>
+        </div>
+
+        <div class="modal-page" data-page="timedilation" hidden>
+          <a href="#" class="modal-back">&#8592; Back</a>
+          <h3>Time Dilation</h3>
+          <p>
+            Special relativity says a moving clock runs slow. The factor is the
+            Lorentz γ = 1/√(1 − v²/c²): at everyday speeds it's indistinguishable
+            from 1, but as speed approaches light-speed it grows without bound. The
+            crew doesn't notice anything odd on board — their clocks, hearts, and
+            coffee all run normally. It's only when compared against clocks at home
+            that less time has passed for the ship.
+          </p>
+          <p>
+            That's why every mission reports two durations. <em>Observer time</em> is
+            the trip as measured from the solar system at large; <em>ship time</em> is
+            what the crew's calendar shows on arrival. The Time Dilation panel shows
+            the peak γ and the time the crew "saved" by traveling fast.
+          </p>
+          <p>
+            For inner-planet hops the effect is tiny — γ ≈ 1.00002 on a 1 g Mars run,
+            saving the crew mere seconds. Push to the outer planets at high
+            acceleration and peak speed reaches several percent of c, where the
+            savings grow to hours. And this is no illusion: the crew genuinely ages
+            less. Fly far enough, fast enough, and you arrive measurably younger than
+            your twin who stayed home.
+          </p>
+        </div>
+
+        <div class="modal-page" data-page="flip" hidden>
+          <a href="#" class="modal-back">&#8592; Back</a>
+          <h3>The Flip Maneuver</h3>
+          <p>
+            A ship that accelerated the whole way would streak past its destination at
+            megameters per second. To arrive at rest, the second half of the trip must
+            be spent slowing down — and since a rocket can only push along its engine
+            axis, slowing down means physically turning the ship around so the engine
+            faces the direction of travel.
+          </p>
+          <p>
+            So at the midpoint the engine cuts out, the ship rotates 180°, and the
+            burn resumes — now as deceleration. During the rotation the ship coasts
+            and the crew is briefly weightless; before and after, the steady thrust
+            presses them to the deck at a comfortable 1 g, like gravity. The animation
+            shows the whole sequence: plume forward, the slow tumble, plume aft.
+          </p>
+          <p>
+            When the mission caps peak speed, the profile gains a cruise phase:
+            accelerate, coast at the cap, flip at the end of the cruise, then brake.
+            The white dot on the trajectory marks the flip point — always at the
+            midpoint of a pure brachistochrone leg, but pushed later when a cruise
+            phase intervenes.
           </p>
         </div>
       </div>

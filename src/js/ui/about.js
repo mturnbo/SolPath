@@ -37,6 +37,11 @@ export function initAboutModal() {
   }
 
   const pages = body.querySelectorAll('.modal-page');
+  let pageStack = [];
+
+  function currentPage() {
+    return [...pages].find(p => !p.hidden)?.dataset.page ?? 'main';
+  }
 
   function showPage(name) {
     pages.forEach(p => { p.hidden = p.dataset.page !== name; });
@@ -47,6 +52,7 @@ export function initAboutModal() {
 
   function open() {
     overlay.hidden = false;
+    pageStack = [];
     showPage('main');
   }
 
@@ -58,12 +64,13 @@ export function initAboutModal() {
     const topicLink = e.target.closest('.modal-topic-link');
     if (topicLink) {
       e.preventDefault();
+      pageStack.push(currentPage());
       showPage(topicLink.dataset.topic);
       return;
     }
     if (e.target.closest('.modal-back')) {
       e.preventDefault();
-      showPage('main');
+      showPage(pageStack.pop() ?? 'main');
     }
   });
 
