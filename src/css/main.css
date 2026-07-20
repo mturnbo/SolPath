@@ -691,6 +691,29 @@ body {
   margin-bottom: 4px;
 }
 
+.modal-topic-link {
+  color: var(--color-accent);
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+
+.modal-topic-link:hover {
+  text-decoration-style: solid;
+}
+
+.modal-back {
+  display: inline-block;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  text-decoration: none;
+  margin-bottom: 12px;
+  transition: color 0.15s;
+}
+
+.modal-back:hover {
+  color: var(--color-accent);
+}
+
 .modal-footnote {
   font-size: 11px;
   color: var(--color-text-muted);

@@ -36,16 +36,36 @@ export function initAboutModal() {
     requestAnimationFrame(drawBackground);
   }
 
-  function open() {
-    overlay.hidden = false;
+  const pages = body.querySelectorAll('.modal-page');
+
+  function showPage(name) {
+    pages.forEach(p => { p.hidden = p.dataset.page !== name; });
     body.scrollTop = 0;
     cam.originY    = 0;
     drawBackground();
   }
 
+  function open() {
+    overlay.hidden = false;
+    showPage('main');
+  }
+
   function close() {
     overlay.hidden = true;
   }
+
+  body.addEventListener('click', e => {
+    const topicLink = e.target.closest('.modal-topic-link');
+    if (topicLink) {
+      e.preventDefault();
+      showPage(topicLink.dataset.topic);
+      return;
+    }
+    if (e.target.closest('.modal-back')) {
+      e.preventDefault();
+      showPage('main');
+    }
+  });
 
   body.addEventListener('scroll', () => {
     cam.originY = -body.scrollTop * SCROLL_FACTOR;
