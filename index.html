@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SolPath</title>
+  <link rel="icon" type="image/svg+xml" href="/src/images/favicon.svg">
   <link rel="stylesheet" href="src/css/reset.css" />
   <link rel="stylesheet" href="src/css/main.css" />
 </head>
@@ -11,8 +12,9 @@
   <div id="app">
     <header id="header">
       <h1>SolPath</h1>
-      <p class="tagline">Constant-thrust trajectory planner for the inner and outer solar system</p>
+      <p class="tagline">Constant-Thrust Spacecraft Trajectory Planner</p>
       <button class="btn-share" id="btn-share" title="Copy shareable link">&#128279; Share</button>
+      <button class="btn-share" id="btn-about" title="About SolPath">&#9432; About</button>
     </header>
 
     <main id="main">
@@ -55,7 +57,7 @@
           <div class="field-row">
             <label class="field-label" for="select-detour-mode">Detour</label>
             <select class="field-select" id="select-detour-mode"
-                    title="How to handle paths that pass within 0.35 AU of the Sun">
+                    title="How to handle paths that pass within 0.35 AU of Sol">
               <option value="stop">Waypoint stop</option>
               <option value="arc">Smooth arc</option>
             </select>
@@ -114,6 +116,79 @@
 
       </aside>
     </main>
+  </div>
+
+  <div class="modal-overlay" id="about-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="about-title">
+      <canvas class="modal-starfield" id="about-starfield"></canvas>
+
+      <header class="modal-header">
+        <img class="modal-logo" src="src/images/favicon.svg" alt="SolPath logo" />
+        <div>
+          <h2 id="about-title">SolPath</h2>
+          <p class="modal-subtitle">Constant-Thrust Spacecraft Trajectory Planner</p>
+        </div>
+        <button class="modal-close" id="about-close" title="Close">&times;</button>
+      </header>
+
+      <div class="modal-body" id="about-body">
+        <h3>What Is This?</h3>
+        <p>
+          SolPath plans point-to-point missions between the planets for a spacecraft
+          that accelerates continuously — a <em>brachistochrone</em> trajectory. Pick an
+          origin, a destination, a departure date, and a constant acceleration, and
+          SolPath computes the flight path, travel time, and relativistic effects.
+        </p>
+
+        <h3>Flip And Burn</h3>
+        <p>
+          A constant-thrust ship doesn't coast. It accelerates toward the target for the
+          first half of the trip, performs a 180° flip maneuver, then decelerates for the
+          second half, arriving at rest relative to the destination. The animation shows
+          the full sequence: the exhaust plume, the mid-course flip, and the deceleration
+          burn. At accelerations near 1 g, even Mars is only days away.
+        </p>
+
+        <h3>Planetary Positions</h3>
+        <p>
+          Planet positions are computed from Keplerian orbital elements with secular
+          rates, so departure and arrival geometry reflect where the planets actually are
+          on your chosen date — including how far the destination moves during the trip.
+        </p>
+
+        <h3>The Solar Exclusion Zone</h3>
+        <p>
+          Trajectories are kept at least 0.35 AU from Sol. When a direct path would pass
+          closer, SolPath reroutes it — either with a <strong>waypoint stop</strong> (two
+          full brachistochrone legs with a stop at a tangent waypoint) or a
+          <strong>smooth arc</strong> that skirts the boundary without stopping. The
+          dashed ring marks the boundary, annotated with Sol's Schwarzschild radius
+          and the tidal force at the ring.
+        </p>
+
+        <h3>Relativity</h3>
+        <p>
+          Every mission reports both observer time and ship time. At high accelerations
+          over long distances, the ship's peak speed becomes a meaningful fraction of the
+          speed of light, and the Time Dilation panel shows the Lorentz factor and the
+          time saved by the crew.
+        </p>
+
+        <h3>Tips</h3>
+        <ul>
+          <li>Drag the canvas to pan; scroll or use the corner buttons to zoom.</li>
+          <li>Use the scrub bar to seek anywhere in the animation.</li>
+          <li>The Share button copies a link that encodes your full mission setup.</li>
+          <li>Try Earth → Mars on 2032-07-14 to see a solar detour in action.</li>
+        </ul>
+
+        <p class="modal-footnote">
+          Trajectory legs are straight-line kinematics; solar gravity is ignored under
+          thrust. At the accelerations SolPath models, that's a fair approximation —
+          gravity at the exclusion ring is only ~0.005 g.
+        </p>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="src/js/main.js"></script>

@@ -16,6 +16,7 @@ import { renderRelativity } from './ui/relativity.js';
 import { renderMissionInfo } from './ui/missionInfo.js';
 import { createAnimator, getSpacecraftState } from './ui/animator.js';
 import { readParams, writeParams, copyPermalink } from './ui/permalink.js';
+import { initAboutModal } from './ui/about.js';
 
 const canvas = document.getElementById('solar-system');
 const ctx    = canvas.getContext('2d');
@@ -315,6 +316,8 @@ document.getElementById('btn-share')?.addEventListener('click', async function (
   this.textContent = 'Copied!';
   setTimeout(() => { this.textContent = orig; }, 1500);
 });
+
+initAboutModal();
 
 // ── Hover ─────────────────────────────────────────────────────────────────────
 
