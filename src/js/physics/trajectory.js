@@ -206,7 +206,33 @@ export function findSolarDetour(A, B, R) {
          + Math.sqrt(Math.hypot(B.x - W.x, B.y - W.y));
   }
 
-  let best = null;
+  // Forward progress: a good detour should not send the ship away from the
+  // destination first.  W makes forward progress when its projection onto the
+  // A→B axis lies between the endpoints.  Without this, the √-cost proxy can
+  // favour a tiny hop away from the destination followed by one long leg — a
+  // path that visibly reverses (e.g. Earth → Neptune).
+  const dABx = B.x - A.x, dABy = B.y - A.y;
+  const lenAB = Math.hypot(dABx, dABy);
+  function isForward(W) {
+    if (lenAB === 0) return true;
+    const proj = ((W.x - A.x) * dABx + (W.y - A.y) * dABy) / lenAB;
+    return proj >= 0 && proj <= lenAB;
+  }
+
+  // Leg clearance: the closest either leg (A→W or W→B) comes to Sol.  A tangent
+  // apex is usually safe by construction, but near-degenerate geometry (a
+  // departure or arrival at/inside the ring, e.g. Mercury near perihelion) can
+  // yield a waypoint whose leg cuts across the zone, so measure it explicitly.
+  const SAFE_CLEARANCE = R * 0.99;  // grazes within 1% of the ring count as safe
+  function legClearance(W) {
+    return Math.min(closestSolarApproach(A, W).distAU,
+                    closestSolarApproach(W, B).distAU);
+  }
+
+  // Candidate waypoints: the four tangent-line apexes plus on-circle points from
+  // a ternary search on each half (√-cost is unimodal there).  The on-circle
+  // points cover degenerate cases where the apexes vanish or all cut through.
+  const candidates = [];
 
   for (const sA of [+1, -1]) {
     for (const sB of [+1, -1]) {
@@ -219,16 +245,10 @@ export function findSolarDetour(A, B, R) {
         y: R * Math.sin(thetaB + sB * alphaB),
       };
       const W = intersect(A, TA, B, TB);
-      if (!W) continue;
-      if (Math.hypot(W.x, W.y) < R * 0.999) continue; // W inside circle — invalid
-      const c = cost(W);
-      if (!best || c < best.c) best = { W, c };
+      if (W && Math.hypot(W.x, W.y) >= R * 0.999) candidates.push(W);
     }
   }
 
-  if (best) return best.W;
-
-  // Fallback: ternary search on the circle (handles degenerate geometry).
   function f(theta) {
     const Wx = R * Math.cos(theta), Wy = R * Math.sin(theta);
     return Math.sqrt(Math.hypot(A.x - Wx, A.y - Wy))
@@ -246,10 +266,33 @@ export function findSolarDetour(A, B, R) {
   const lenSq = dx * dx + dy * dy;
   const tFoot = -(A.x * dx + A.y * dy) / lenSq;
   const phiC  = Math.atan2(A.y + tFoot * dy, A.x + tFoot * dx);
-  const th1 = ternarySearch(phiC - Math.PI / 2, phiC + Math.PI / 2);
-  const th2 = ternarySearch(phiC + Math.PI / 2, phiC + 3 * Math.PI / 2);
-  const theta = f(th1) <= f(th2) ? th1 : th2;
-  return { x: R * Math.cos(theta), y: R * Math.sin(theta) };
+  for (const theta of [
+    ternarySearch(phiC - Math.PI / 2, phiC + Math.PI / 2),
+    ternarySearch(phiC + Math.PI / 2, phiC + 3 * Math.PI / 2),
+  ]) {
+    candidates.push({ x: R * Math.cos(theta), y: R * Math.sin(theta) });
+  }
+
+  // Rank candidates. Safety comes first: any waypoint whose legs clear the zone
+  // beats any that clips it. Among safe waypoints, prefer forward progress, then
+  // lowest brachistochrone cost — this fixes the reported reversing path while
+  // never trading safety for direction. When no waypoint is safe (the endpoint
+  // itself lies inside the zone, e.g. Mercury near perihelion), fall back to the
+  // one that clears the Sun by the widest margin.
+  let best = null;
+  for (const W of candidates) {
+    const clr  = legClearance(W);
+    const cand = { W, safe: clr >= SAFE_CLEARANCE, fwd: isForward(W), clr, c: cost(W) };
+    if (!best) { best = cand; continue; }
+    if (cand.safe !== best.safe) { if (cand.safe) best = cand; continue; }
+    if (cand.safe) {
+      if (cand.fwd !== best.fwd) { if (cand.fwd) best = cand; continue; }
+      if (cand.c < best.c) best = cand;
+    } else if (cand.clr > best.clr) {
+      best = cand;
+    }
+  }
+  return best.W;
 }
 
 // ── Formatting helpers ────────────────────────────────────────────────────────
@@ -262,18 +305,21 @@ export function findSolarDetour(A, B, R) {
  * @returns {string}
  */
 export function formatDuration(days) {
+  const days_per_year = 365.25;
+  const hours_per_day = 24;
+
   if (days < 1) {
-    const h = Math.floor(days * 24);
-    const m = Math.round((days * 24 - h) * 60);
+    const h = Math.floor(days * hours_per_day);
+    const m = Math.round((days * hours_per_day - h) * 60);
     return `${h}h ${m}m`;
   }
-  if (days < 365.25) {
+  if (days < days_per_year) {
     const d = Math.floor(days);
-    const h = Math.round((days - d) * 24);
+    const h = Math.round((days - d) * hours_per_day);
     return h > 0 ? `${d}d ${h}h` : `${d}d`;
   }
-  const years = Math.floor(days / 365.25);
-  const rem   = Math.round(days % 365.25);
+  const years = Math.floor(days / days_per_year);
+  const rem   = Math.round(days % days_per_year);
   return rem > 0 ? `${years}y ${rem}d` : `${years}y`;
 }
 
