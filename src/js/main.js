@@ -17,6 +17,7 @@ import { renderMissionInfo } from './ui/missionInfo.js';
 import { createAnimator, getSpacecraftState } from './ui/animator.js';
 import { readParams, writeParams, copyPermalink } from './ui/permalink.js';
 import { initAboutModal } from './ui/about.js';
+import { downloadMissionLog } from './ui/missionLog.js';
 
 const canvas = document.getElementById('solar-system');
 const ctx    = canvas.getContext('2d');
@@ -324,6 +325,15 @@ document.getElementById('btn-share')?.addEventListener('click', async function (
   await copyPermalink();
   const orig = this.textContent;
   this.textContent = 'Copied!';
+  setTimeout(() => { this.textContent = orig; }, 1500);
+});
+
+// Export-log button — download an hourly CSV of the current mission
+document.getElementById('btn-export-log')?.addEventListener('click', function () {
+  if (!mission) return;
+  downloadMissionLog(mission);
+  const orig = this.textContent;
+  this.textContent = 'Saved!';
   setTimeout(() => { this.textContent = orig; }, 1500);
 });
 
