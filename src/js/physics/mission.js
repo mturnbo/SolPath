@@ -85,22 +85,19 @@ function computeRerouted(
   originPlanet, destPlanet, departureDate, accelG,
   T_depart, departurePos, currentDestPos,
 ) {
-  // Waypoint W on the exclusion circle (fixed in space, independent of planets)
-  const waypoint = findSolarDetour(departurePos, currentDestPos, SOLAR_EXCLUSION_AU);
-
-  // Leg-1 distance (departure → W) is fixed; estimate total time for refinement
-  const d1 = distanceAU(departurePos, waypoint);
-  const t1est = solveBrachistochrone(d1, accelG);
-
-  const d2est   = distanceAU(waypoint, currentDestPos);
-  const t2est   = solveBrachistochrone(d2est, accelG);
-  const totalEst = t1est.coordTimeDays + t2est.coordTimeDays;
-
-  // Refine leg-2 destination with planet position at estimated arrival
-  const arrDateEst = addDays(departureDate, totalEst);
+  // Initial waypoint from the destination's departure-time position, used only
+  // to estimate the arrival time.
+  const wp0 = findSolarDetour(departurePos, currentDestPos, SOLAR_EXCLUSION_AU);
+  const t1est = solveBrachistochrone(distanceAU(departurePos, wp0), accelG);
+  const t2est = solveBrachistochrone(distanceAU(wp0, currentDestPos), accelG);
+  const arrDateEst = addDays(departureDate, t1est.coordTimeDays + t2est.coordTimeDays);
   const arrPosEst  = planetPosition(destPlanet, toJ2000Century(arrDateEst));
 
-  const d2   = distanceAU(waypoint, arrPosEst);
+  // Final waypoint against where the destination will actually be at arrival, so
+  // the detour stays forward-facing and clear of the zone as the planet moves.
+  const waypoint = findSolarDetour(departurePos, arrPosEst, SOLAR_EXCLUSION_AU);
+  const d1 = distanceAU(departurePos, waypoint);
+  const d2 = distanceAU(waypoint, arrPosEst);
   const leg1 = solveBrachistochrone(d1, accelG);
   const leg2 = solveBrachistochrone(d2, accelG);
 
@@ -155,15 +152,18 @@ function computeReroutedArc(
   originPlanet, destPlanet, departureDate, accelG,
   T_depart, departurePos, currentDestPos,
 ) {
-  const waypoint = findSolarDetour(departurePos, currentDestPos, SOLAR_EXCLUSION_AU);
-  const d1 = distanceAU(departurePos, waypoint);
-
-  // Estimate total path length for destination refinement
-  const d2est    = distanceAU(waypoint, currentDestPos);
-  const trajEst  = solveBrachistochrone(d1 + d2est, accelG);
+  // Initial waypoint (destination at departure) just to estimate arrival time.
+  const wp0 = findSolarDetour(departurePos, currentDestPos, SOLAR_EXCLUSION_AU);
+  const d1est   = distanceAU(departurePos, wp0);
+  const d2est   = distanceAU(wp0, currentDestPos);
+  const trajEst = solveBrachistochrone(d1est + d2est, accelG);
   const arrDateEst = addDays(departureDate, trajEst.coordTimeDays);
   const arrPosEst  = planetPosition(destPlanet, toJ2000Century(arrDateEst));
 
+  // Final waypoint against the estimated arrival position so the arc stays
+  // forward-facing and clear of the zone as the destination moves in flight.
+  const waypoint = findSolarDetour(departurePos, arrPosEst, SOLAR_EXCLUSION_AU);
+  const d1         = distanceAU(departurePos, waypoint);
   const d2         = distanceAU(waypoint, arrPosEst);
   const d_total    = d1 + d2;
   const trajectory = solveBrachistochrone(d_total, accelG);

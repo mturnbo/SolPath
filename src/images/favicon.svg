@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Retro rocket in space favicon</title>
+  <desc id="desc">Flat-color old-school rocket flying through a solar system inside a circular badge.</desc>
+  <defs>
+    <clipPath id="badge"><circle cx="256" cy="256" r="244"/></clipPath>
+  </defs>
+  <g clip-path="url(#badge)">
+    <rect width="512" height="512" fill="#061b33"/>
+
+    <!-- stars -->
+    <g fill="#fff6dc">
+      <circle cx="61" cy="104" r="3"/><circle cx="105" cy="61" r="3"/><circle cx="176" cy="91" r="2.5"/>
+      <circle cx="224" cy="48" r="3"/><circle cx="350" cy="66" r="3"/><circle cx="417" cy="113" r="3"/>
+      <circle cx="463" cy="177" r="2.5"/><circle cx="448" cy="288" r="3"/><circle cx="406" cy="416" r="2.5"/>
+      <circle cx="327" cy="457" r="3"/><circle cx="225" cy="466" r="2.5"/><circle cx="116" cy="422" r="3"/>
+      <circle cx="54" cy="329" r="2.5"/><circle cx="75" cy="229" r="3"/><circle cx="211" cy="177" r="2.5"/>
+      <circle cx="378" cy="233" r="2.5"/><circle cx="287" cy="101" r="2.5"/><circle cx="304" cy="393" r="2.5"/>
+    </g>
+    <g fill="#ffbd3f">
+      <circle cx="140" cy="177" r="3"/><circle cx="402" cy="85" r="3"/><circle cx="390" cy="315" r="3"/>
+      <circle cx="84" cy="299" r="4"/><circle cx="245" cy="29" r="3"/><circle cx="341" cy="442" r="3"/>
+    </g>
+    <g fill="#fffdf6">
+      <path d="M85 205h8l3-9 3 9h8l-6 5 2 9-7-5-7 5 2-9z"/>
+      <path d="M319 63h9l3-11 3 11h9l-7 5 3 10-8-6-8 6 3-10z"/>
+      <path d="M397 381h10l3-12 3 12h10l-8 6 3 11-8-7-8 7 3-11z"/>
+      <path d="M103 347h9l3-11 3 11h9l-7 5 3 10-8-6-8 6 3-10z"/>
+      <path d="M369 254h9l3-11 3 11h9l-7 5 3 10-8-6-8 6 3-10z"/>
+    </g>
+
+    <!-- planets -->
+    <g>
+      <circle cx="137" cy="121" r="38" fill="#ffc247"/>
+      <ellipse cx="137" cy="121" rx="67" ry="15" fill="none" stroke="#ffc247" stroke-width="9" transform="rotate(-18 137 121)"/>
+      <circle cx="423" cy="207" r="23" fill="#f04a2c"/>
+      <circle cx="416" cy="200" r="5" fill="#bd2b21"/><circle cx="432" cy="215" r="6" fill="#bd2b21"/>
+      <circle cx="407" cy="346" r="45" fill="#40b7bd"/>
+      <path d="M370 330c18-9 33 9 74-2v14c-26 10-46-8-75 2zM369 355c25-10 42 9 76-2v14c-27 10-49-8-73 1z" fill="#258f9b"/>
+      <circle cx="280" cy="422" r="22" fill="#4f9bd3"/>
+      <circle cx="274" cy="415" r="5" fill="#2d6f9e"/><circle cx="288" cy="428" r="6" fill="#2d6f9e"/>
+    </g>
+
+    <!-- exhaust -->
+    <path d="M195 332C164 364 132 414 96 512h112c12-81 32-127 54-155z" fill="#e83a24"/>
+    <path d="M205 337c-25 41-48 94-67 175h60c9-65 25-115 47-154z" fill="#ff8d22"/>
+    <path d="M217 344c-18 35-33 77-43 126 24-29 42-64 57-107z" fill="#ffd65a"/>
+
+    <!-- rocket group -->
+    <g transform="rotate(29 267 250)">
+      <!-- fins -->
+      <path d="M185 292c-31 8-57 27-73 57 31 2 58-6 80-28z" fill="#df2d24" stroke="#061b33" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M328 292c31 8 57 27 73 57-31 2-58-6-80-28z" fill="#df2d24" stroke="#061b33" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M250 309l-22 69 28-19 27 19-21-69z" fill="#df2d24" stroke="#061b33" stroke-width="5" stroke-linejoin="round"/>
+
+      <!-- body -->
+      <path d="M256 74c-63 55-81 142-62 241h124c19-99 1-186-62-241z" fill="#fff3d6" stroke="#061b33" stroke-width="6" stroke-linejoin="round"/>
+      <!-- nose -->
+      <path d="M256 74c-27 23-45 49-56 78h112c-11-29-29-55-56-78z" fill="#df2d24" stroke="#061b33" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M201 151h110" stroke="#a7adb0" stroke-width="12"/>
+      <path d="M201 151h110" stroke="#061b33" stroke-width="4"/>
+      <g fill="#061b33"><circle cx="221" cy="151" r="3"/><circle cx="244" cy="151" r="3"/><circle cx="268" cy="151" r="3"/><circle cx="291" cy="151" r="3"/></g>
+
+      <!-- window -->
+      <circle cx="256" cy="211" r="36" fill="#df2d24" stroke="#061b33" stroke-width="6"/>
+      <circle cx="256" cy="211" r="24" fill="#082744" stroke="#061b33" stroke-width="4"/>
+      <path d="M244 201c6-9 14-12 23-10" fill="none" stroke="#fffdf6" stroke-width="6" stroke-linecap="round"/>
+      <g fill="#061b33"><circle cx="256" cy="177" r="2.5"/><circle cx="280" cy="187" r="2.5"/><circle cx="288" cy="211" r="2.5"/><circle cx="280" cy="235" r="2.5"/><circle cx="256" cy="245" r="2.5"/><circle cx="232" cy="235" r="2.5"/><circle cx="224" cy="211" r="2.5"/><circle cx="232" cy="187" r="2.5"/></g>
+
+      <!-- engine -->
+      <path d="M211 315h90v24c-14 10-29 15-45 15s-31-5-45-15z" fill="#8c9699" stroke="#061b33" stroke-width="6"/>
+      <path d="M225 325v18M256 325v24M287 325v18" stroke="#061b33" stroke-width="5"/>
+    </g>
+  </g>
+  <circle cx="256" cy="256" r="244" fill="none" stroke="#061b33" stroke-width="8"/>
+</svg>
