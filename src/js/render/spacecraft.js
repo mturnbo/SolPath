@@ -78,6 +78,30 @@ function positionFraction(tau, trajectory, distAU) {
   return 1 - fA * (1 - tDecel) ** 2;
 }
 
+/**
+ * Inverse of positionFraction: given a target distance fraction (0–1) along a
+ * leg, return the normalized time τ at which the ship reaches it.  Used to time
+ * the follow camera against a point on the path rather than a moment in time.
+ *
+ * @param {object} trajectory
+ * @param {number} distAU     total distance of the leg (AU)
+ * @param {number} fTarget    distance fraction in [0, 1]
+ * @returns {number} τ in [0, 1]
+ */
+export function tauAtDistanceFraction(trajectory, distAU, fTarget) {
+  const T  = trajectory.coordTimeDays;
+  const α  = trajectory.accelTimeDays / T;
+  const fA = trajectory.accelDistAU   / distAU;
+  const φ  = trajectory.isCapped
+    ? trajectory.cruiseTimeDays / T
+    : (trajectory.flipTimeDays || 0) / T;
+
+  if (fTarget <= fA)      return α * Math.sqrt(fTarget / fA);          // accel
+  if (fTarget <= 1 - fA)  return α + φ * (fTarget - fA) / (1 - 2 * fA); // flip/cruise
+  const tDecel = 1 - Math.sqrt((1 - fTarget) / fA);                    // decel
+  return α + φ + α * tDecel;
+}
+
 export function drawSpacecraft(ctx, cam, pos, dir, thrustPhase = 'accel', flipProgress = 0) {
   const { sx, sy } = worldToScreen(cam, pos.x, pos.y);
 

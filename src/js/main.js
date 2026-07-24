@@ -5,7 +5,7 @@ import { createCamera, fitSolarSystem } from './render/camera.js';
 import { drawAllOrbits } from './render/orbits.js';
 import { drawAllPlanets, hitTestPlanet } from './render/planets.js';
 import { drawTrajectory, drawDepartureMarker, drawExclusionRing } from './render/trajectory.js';
-import { drawSpacecraft, spacecraftPosition } from './render/spacecraft.js';
+import { drawSpacecraft, spacecraftPosition, tauAtDistanceFraction } from './render/spacecraft.js';
 import { drawStarfield } from './render/starfield.js';
 import { drawArrivalOverlay, triggerArrivalFlash, isFlashing } from './render/arrivalOverlay.js';
 import { drawDeparturePlaceholders } from './render/departurePlaceholders.js';
@@ -93,10 +93,20 @@ function getFlipProgress(tau, mission) {
 function followCamera(tau, w, h) {
   const pos = spacecraftPosition(tau, mission);
 
-  // Camera zooms out until the ship starts decelerating, then holds.
+  // Camera zooms out until a hold point, then stays at the far scale.  For
+  // detour missions the hold point is halfway along the leg *after* the detour
+  // waypoint; for direct missions it is the flip (start of deceleration).
   let flipTau;
   if (mission.isRerouted && !mission.isSmooth) {
-    flipTau = mission.leg1.coordTimeDays / mission.trajectory.coordTimeDays;
+    // Waypoint stop: detour is the end of leg 1; hold halfway through leg 2.
+    const tauDetour = mission.leg1.coordTimeDays / mission.trajectory.coordTimeDays;
+    flipTau = tauDetour + (1 - tauDetour) / 2;
+  } else if (mission.isRerouted && mission.isSmooth) {
+    // Smooth arc: a single brachistochrone over the two-segment path, so map the
+    // point midway between the waypoint and the destination back to a time.
+    const dTotal = mission.leg1DistAU + mission.leg2DistAU;
+    const fW     = mission.leg1DistAU / dTotal;   // waypoint distance fraction
+    flipTau = tauAtDistanceFraction(mission.trajectory, dTotal, fW + (1 - fW) / 2);
   } else {
     const traj = mission.trajectory;
     const T    = traj.coordTimeDays;
