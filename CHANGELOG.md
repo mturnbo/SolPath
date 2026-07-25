@@ -1,10 +1,8 @@
  # Changelog
-
-All notable changes to SolPath will be documented here.
-
+ 
 ---
 
-## [Unreleased]
+## [1.2.1] — 2026-07-24
 
 ### PR 30 — Mission log export
 - "Export Log" button (top of Mission Summary) downloads an hourly CSV of the trip to a `logs` folder
