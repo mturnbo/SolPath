@@ -17,6 +17,7 @@ import { renderMissionInfo } from './ui/missionInfo.js';
 import { createAnimator, getSpacecraftState } from './ui/animator.js';
 import { readParams, writeParams, copyPermalink } from './ui/permalink.js';
 import { initAboutModal } from './ui/about.js';
+import { initTutorial } from './ui/tutorial.js';
 
 const canvas = document.getElementById('solar-system');
 const ctx    = canvas.getContext('2d');
@@ -328,6 +329,7 @@ document.getElementById('btn-share')?.addEventListener('click', async function (
 });
 
 initAboutModal();
+initTutorial();
 
 // ── Hover ─────────────────────────────────────────────────────────────────────
 
