@@ -171,6 +171,38 @@ body {
   margin-bottom: 12px;
 }
 
+/* Heading with a right-aligned action button (e.g. Export Log) */
+.panel-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.panel-heading-row .panel-heading {
+  margin-bottom: 0;
+}
+
+.btn-export-log {
+  flex: 0 0 auto;
+  height: 24px;
+  padding: 0 8px;
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.btn-export-log:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
 /* ── Mission planner fields ── */
 
 .field-row {
@@ -711,6 +743,30 @@ body {
 }
 
 .modal-back:hover {
+  color: var(--color-accent);
+}
+
+.log-cols {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 4px 0 8px;
+  font-size: 12px;
+}
+
+.log-cols td {
+  padding: 4px 8px 4px 0;
+  vertical-align: top;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.log-cols td:first-child {
+  white-space: nowrap;
+  color: var(--color-accent);
+}
+
+.modal-body code {
+  font-family: var(--font-mono);
+  font-size: 11px;
   color: var(--color-accent);
 }
 

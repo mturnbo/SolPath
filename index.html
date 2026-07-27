@@ -104,7 +104,10 @@
         </section>
 
         <section class="panel-section" id="section-info">
-          <h2 class="panel-heading">Mission Summary</h2>
+          <div class="panel-heading-row">
+            <h2 class="panel-heading">Mission Summary</h2>
+            <button class="btn-export-log" id="btn-export-log" title="Download an hourly progress log (CSV) to your logs folder">&#8681; Export Log</button>
+          </div>
           <div id="mission-info-panel">
             <p class="info-empty">Configure a mission above.</p>
           </div>
@@ -187,11 +190,21 @@
           time saved by the crew.
         </p>
 
+        <h3>Mission Logs</h3>
+        <p>
+          The <strong>Export Log</strong> button at the top of the Mission Summary saves
+          an hourly, second-by-second breakdown of the trip as a CSV file — position,
+          speed, phase, and relativistic clock drift at every step. See
+          <a href="#" class="modal-topic-link" data-topic="logging">Mission Logs</a>
+          for the file format and what each column means.
+        </p>
+
         <h3>Tips</h3>
         <ul>
           <li>Drag the canvas to pan; scroll or use the corner buttons to zoom.</li>
           <li>Use the scrub bar to seek anywhere in the animation.</li>
           <li>The Share button copies a link that encodes your full mission setup.</li>
+          <li>Export Log writes a CSV to a <em>logs</em> folder in your downloads.</li>
           <li>Try Earth → Mars on 2032-07-14 to see a solar detour in action.</li>
         </ul>
 
@@ -350,6 +363,40 @@
             The white dot on the trajectory marks the flip point — always at the
             midpoint of a pure brachistochrone leg, but pushed later when a cruise
             phase intervenes.
+          </p>
+        </div>
+
+        <div class="modal-page" data-page="logging" hidden>
+          <a href="#" class="modal-back">&#8592; Back to About</a>
+          <h3>Mission Logs</h3>
+          <p>
+            <strong>Export Log</strong> writes the current mission to a CSV file in a
+            <em>logs</em> folder in your downloads, generated fresh each time you click
+            it. Every row is one hour of observer time (plus a final row at arrival),
+            so you can plot the whole trip or check it against your own math.
+          </p>
+          <p>
+            A comment header (lines starting with <code>#</code>) records the mission
+            setup and totals — route, dates, acceleration, distance, observer and ship
+            time, peak speed, and Δv. Then one row per hour with these columns:
+          </p>
+          <table class="log-cols">
+            <tr><td><code>t_obs_h</code></td><td>elapsed observer time (hours) — the sampling axis</td></tr>
+            <tr><td><code>t_ship_h</code></td><td>elapsed ship / proper time (hours); drifts behind observer time</td></tr>
+            <tr><td><code>phase</code></td><td>accel · cruise · flip · decel (prefixed <code>leg1_</code>/<code>leg2_</code> on a detour)</td></tr>
+            <tr><td><code>x_au</code>, <code>y_au</code></td><td>heliocentric position (AU), Sol at the origin</td></tr>
+            <tr><td><code>r_sun_au</code></td><td>distance from Sol (AU) — should stay ≥ 0.35 on a detour</td></tr>
+            <tr><td><code>dist_done_au</code></td><td>distance travelled along the path (AU)</td></tr>
+            <tr><td><code>dist_left_au</code></td><td>distance remaining to the destination (AU)</td></tr>
+            <tr><td><code>speed_kms</code></td><td>instantaneous speed (km/s)</td></tr>
+            <tr><td><code>speed_c</code></td><td>speed as a fraction of light speed</td></tr>
+            <tr><td><code>gamma</code></td><td>Lorentz factor at that speed</td></tr>
+            <tr><td><code>accel_g</code></td><td>net thrust (g): <code>+</code> accelerating, <code>−</code> decelerating, <code>0</code> coasting</td></tr>
+          </table>
+          <p class="modal-footnote">
+            Position and speed use the same Newtonian kinematics the animation draws;
+            ship time is integrated from the relativistic dilation of that speed, so the
+            log stays consistent with the Mission Summary and Time Dilation panels.
           </p>
         </div>
       </div>

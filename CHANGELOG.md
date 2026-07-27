@@ -1,10 +1,40 @@
  # Changelog
-
-All notable changes to SolPath will be documented here.
-
+ 
 ---
 
-## [Unreleased]
+## [1.2.1] — 2026-07-24
+
+### PR 30 — Mission log export
+- "Export Log" button (top of Mission Summary) downloads an hourly CSV of the trip to a `logs` folder
+- Columns: observer/ship time, phase, heliocentric position, distance from Sol, speed, Lorentz γ, net thrust
+- About popup section documenting the log format and every column
+
+### PR 29 — Solar detour direction fix
+- Fix reroutes that sent the ship away from the destination before turning back toward it
+- Choose the exclusion-zone waypoint by leg safety then forward progress, evaluated against the arrival position
+
+### PR 28 — Post-detour zoom timing
+- Follow camera holds its zoom-out until halfway past the detour waypoint instead of at the waypoint
+
+### PR 27 — About popup
+- About modal with a favicon header and a parallax starfield background, scrollable to fit
+- Topic pages: brachistochrone, Keplerian orbits, Schwarzschild radius, delta-v, time dilation, flip maneuver
+
+### PR 26 — Solar physics ring callout
+- Annotate the exclusion ring with Sol's Schwarzschild radius and the tidal force at the boundary
+
+### PR 25 — Shareable permalink
+- Encode all mission parameters in the URL and update it on every change
+- Share button copies the link to the clipboard
+
+### PR 24 — Animation scrub bar
+- Seek bar below the speed controls; drag to scrub, pausing and resuming playback
+
+### PR 23 — Parallax starfield
+- Star-field background that parallax-scrolls across depth layers as the camera pans
+
+### PR 22 — Animation speed control
+- Playback speed options: ½×, 1×, 2×, 4×
 
 ### PR 21 — Comparison mode cleanup
 - Remove unused comparison overlay
