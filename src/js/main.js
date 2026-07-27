@@ -17,6 +17,7 @@ import { renderMissionInfo } from './ui/missionInfo.js';
 import { createAnimator, getSpacecraftState } from './ui/animator.js';
 import { readParams, writeParams, copyPermalink } from './ui/permalink.js';
 import { initAboutModal } from './ui/about.js';
+import { initTutorial } from './ui/tutorial.js';
 import { downloadMissionLog } from './ui/missionLog.js';
 
 const canvas = document.getElementById('solar-system');
@@ -338,6 +339,7 @@ document.getElementById('btn-export-log')?.addEventListener('click', function ()
 });
 
 initAboutModal();
+initTutorial();
 
 // ── Hover ─────────────────────────────────────────────────────────────────────
 

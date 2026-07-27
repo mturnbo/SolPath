@@ -778,6 +778,128 @@ body {
   margin-top: 14px;
 }
 
+/* ── Tutorial (first-load walkthrough) ── */
+
+.modal-link {
+  color: var(--color-accent);
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.modal-link:hover {
+  text-decoration-style: solid;
+}
+
+.tut-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+
+.tut-overlay[hidden] {
+  display: none;
+}
+
+/* Full dim only when a step has no target (welcome / finish). */
+.tut-overlay--dim {
+  background: rgba(4, 4, 12, 0.72);
+}
+
+.tut-highlight {
+  position: fixed;
+  border-radius: 6px;
+  /* The big spread ring dims everything except the spotlighted element. */
+  box-shadow: 0 0 0 9999px rgba(4, 4, 12, 0.72);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 0;
+  pointer-events: none;
+  transition: left 0.2s, top 0.2s, width 0.2s, height 0.2s;
+}
+
+.tut-highlight[hidden] {
+  display: none;
+}
+
+.tut-card {
+  position: fixed;
+  width: 280px;
+  max-width: calc(100vw - 24px);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent-dim);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+}
+
+.tut-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--color-text);
+}
+
+.tut-text {
+  font-size: 13px;
+  color: var(--color-text);
+  margin-bottom: 14px;
+}
+
+.tut-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tut-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.tut-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.tut-btns button {
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.tut-btns button:hover:not(:disabled) {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.tut-btns button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.tut-next {
+  background: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  color: #000 !important;
+  font-weight: 600;
+}
+
+.tut-next:hover {
+  background: #5b9cec !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tut-highlight { transition: none; }
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 640px) {

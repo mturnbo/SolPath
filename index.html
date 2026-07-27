@@ -17,6 +17,7 @@
       <h1>SolPath</h1>
       <p class="tagline">Constant-Thrust Spacecraft Trajectory Planner</p>
       <button class="btn-share" id="btn-share" title="Copy shareable link">&#128279; Share</button>
+      <button class="btn-share" id="btn-help" title="Replay the tutorial">&#8253; Help</button>
       <button class="btn-share" id="btn-about" title="About SolPath">&#9432; About</button>
     </header>
 
@@ -144,8 +145,7 @@
           SolPath plans point-to-point missions between the planets for a spacecraft
           that accelerates continuously — a
           <a href="#" class="modal-topic-link" data-topic="brachistochrone"><em>brachistochrone</em></a>
-          trajectory. Pick an
-          origin, a destination, a departure date, and a constant acceleration, and
+          trajectory. Pick an origin, a destination, a departure date, and a constant acceleration, and
           SolPath computes the flight path, travel time, and relativistic effects.
         </p>
 
@@ -154,8 +154,7 @@
           A constant-thrust ship doesn't coast. It accelerates toward the target for the
           first half of the trip, performs a
           <a href="#" class="modal-topic-link" data-topic="flip">180° flip maneuver</a>,
-          then decelerates for the
-          second half, arriving at rest relative to the destination. The animation shows
+          then decelerates for the second half, arriving at rest relative to the destination. The animation shows
           the full sequence: the exhaust plume, the mid-course flip, and the deceleration
           burn. At accelerations near 1 g, even Mars is only days away.
         </p>
@@ -164,8 +163,7 @@
         <p>
           Planet positions are computed from
           <a href="#" class="modal-topic-link" data-topic="keplerian">Keplerian orbital elements</a>
-          with secular
-          rates, so departure and arrival geometry reflect where the planets actually are
+          with secular rates, so departure and arrival geometry reflect where the planets actually are
           on your chosen date — including how far the destination moves during the trip.
         </p>
 
@@ -186,8 +184,7 @@
           over long distances, the ship's peak speed becomes a meaningful fraction of the
           speed of light, and the
           <a href="#" class="modal-topic-link" data-topic="timedilation">Time Dilation</a>
-          panel shows the Lorentz factor and the
-          time saved by the crew.
+          panel shows the Lorentz factor and the time saved by the crew.
         </p>
 
         <h3>Mission Logs</h3>
@@ -206,12 +203,12 @@
           <li>The Share button copies a link that encodes your full mission setup.</li>
           <li>Export Log writes a CSV to a <em>logs</em> folder in your downloads.</li>
           <li>Try Earth → Mars on 2032-07-14 to see a solar detour in action.</li>
+          <li><a href="#" class="modal-link" data-action="replay-tutorial">Replay the tutorial</a> for a quick tour of the controls.</li>
         </ul>
 
         <p class="modal-footnote">
-          Trajectory legs are straight-line kinematics; solar gravity is ignored under
-          thrust. At the accelerations SolPath models, that's a fair approximation —
-          gravity at the exclusion ring is only ~0.005 g.
+          Trajectory legs are straight-line kinematics; solar gravity is ignored under thrust. At the accelerations
+          SolPath models, that's a fair approximation — gravity at the exclusion ring is only ~0.005 g.
         </p>
         </div>
 
@@ -219,25 +216,20 @@
           <a href="#" class="modal-back">&#8592; Back to About</a>
           <h3>Brachistochrone Trajectories</h3>
           <p>
-            From the Greek <em>brachistos</em> (shortest) and <em>chronos</em> (time), a
-            brachistochrone is the fastest possible path between two points. For a
-            spacecraft with unlimited propellant, that means thrusting the entire way:
-            accelerate toward the target to the midpoint, flip 180°, then decelerate to
-            arrive at rest.
+            From the Greek <em>brachistos</em> (shortest) and <em>chronos</em> (time), a brachistochrone is the fastest
+            possible path between two points. For a spacecraft with unlimited propellant, that means thrusting the
+            entire way: accelerate toward the target to the midpoint, flip 180°, then decelerate to arrive at rest.
           </p>
           <p>
-            For a distance <em>d</em> under constant acceleration <em>a</em>, the trip
-            takes <em>t</em> = 2√(<em>d</em>/<em>a</em>). Doubling the acceleration cuts
-            travel time by only √2, but quadrupling the distance merely doubles it —
-            which is why the outer planets stay surprisingly reachable at 1 g.
+            For a distance <em>d</em> under constant acceleration <em>a</em>, the trip takes <em>t</em> =
+            2√(<em>d</em>/<em>a</em>). Doubling the acceleration cuts travel time by only √2, but quadrupling the
+            distance merely doubles it — which is why the outer planets stay surprisingly reachable at 1 g.
           </p>
           <p>
-            The catch is
-            <a href="#" class="modal-topic-link" data-topic="deltav">delta-v</a>.
-            A traditional Hohmann transfer to Mars needs a few
-            km/s and months of coasting; a 1 g brachistochrone needs thousands of km/s —
-            far beyond chemical rockets. It's the domain of fusion torches and other
-            speculative drives, which is what makes it fun to plan for.
+            The catch is <a href="#" class="modal-topic-link" data-topic="deltav">delta-v</a>.
+            A traditional Hohmann transfer to Mars needs a few km/s and months of coasting; a 1 g brachistochrone needs
+            thousands of km/s — far beyond chemical rockets. It's the domain of fusion torches and other speculative
+            drives  But it's fun to imagine.
           </p>
         </div>
 
@@ -245,23 +237,18 @@
           <a href="#" class="modal-back">&#8592; Back to About</a>
           <h3>Keplerian Orbits</h3>
           <p>
-            Johannes Kepler showed that planets move on ellipses with the Sun at one
-            focus, sweeping out equal areas in equal times. An orbit is fully described
-            by six <em>orbital elements</em>: semi-major axis, eccentricity,
-            inclination, longitude of the ascending node, longitude of perihelion, and
-            mean longitude.
+            Johannes Kepler showed that planets move on ellipses with the Sun at one focus, sweeping out equal areas
+            in equal times. An orbit is fully described by six <em>orbital elements</em>: semi-major axis, eccentricity,
+            inclination, longitude of the ascending node, longitude of perihelion, and mean longitude.
           </p>
           <p>
-            The elements drift slowly as the planets tug on one another, so each one
-            also carries a secular rate — a per-century correction. SolPath stores both
-            for every planet, steps the mean longitude to your chosen date, solves
-            Kepler's equation for the eccentric anomaly, and converts to a position in
-            the ecliptic plane.
+            The elements drift slowly as the planets tug on one another, so each one also carries a secular rate — a
+            per-century correction. SolPath stores both for every planet, steps the mean longitude to your chosen date,
+            solves Kepler's equation for the eccentric anomaly, and converts to a position in the ecliptic plane.
           </p>
           <p>
-            That's why departure and arrival geometry change with the date: the planets
-            really are where the ephemeris puts them, and the destination keeps moving
-            while you fly.
+            That's why departure and arrival geometry change with the date: the planets really are where the ephemeris
+            puts them, and the destination keeps moving while you fly.
           </p>
         </div>
 
@@ -269,21 +256,18 @@
           <a href="#" class="modal-back">&#8592; Back to About</a>
           <h3>The Schwarzschild Radius</h3>
           <p>
-            The Schwarzschild radius is the size an object would have to be squeezed to
-            for its escape velocity to reach the speed of light — the radius of a black
-            hole's event horizon: <em>r<sub>s</sub></em> = 2<em>GM</em>/<em>c</em>².
+            The Schwarzschild radius is the size an object would have to be squeezed to for its escape velocity to
+            reach the speed of light — the radius of a black hole's event horizon: <em>r<sub>s</sub></em> = 2<em>GM</em>/<em>c</em>².
           </p>
           <p>
-            For Sol it's about 2.95 km. Compress the entire Sun — 333,000 Earth masses —
-            into a ball smaller than a city and it would become a black hole. Shown at
-            the exclusion ring purely for scale: the danger at 0.35 AU is heat and
-            radiation, not gravity.
+            For Sol it's about 2.95 km. Compress the entire Sun — 333,000 Earth masses — into a ball smaller than a c
+            ity and it would become a black hole. Shown at the exclusion ring purely for scale: the danger at 0.35 AU
+            is heat and radiation, not gravity.
           </p>
           <p>
-            The tidal force shown alongside it is the difference in solar pull across a
-            radial metre, 2<em>GM</em>/<em>r</em>³ — about 10⁻¹² m/s² at the ring.
-            Utterly negligible for a spacecraft; near a stellar-mass black hole's
-            horizon the same formula is what tears things apart.
+            The tidal force shown alongside it is the difference in solar pull across a radial metre,
+            2<em>GM</em>/<em>r</em>³ — about 10⁻¹² m/s² at the ring. This is negligible for a spacecraft; near a
+            stellar-mass black hole's horizon the same formula is what tears things apart.
           </p>
         </div>
 
@@ -291,25 +275,21 @@
           <a href="#" class="modal-back">&#8592; Back</a>
           <h3>Delta-v</h3>
           <p>
-            Delta-v (Δv) is the total change in velocity a mission demands — every
-            speed-up, slow-down, and course change added together. It's the true
-            currency of spaceflight: the rocket equation says the propellant needed
-            grows <em>exponentially</em> with the ratio of Δv to exhaust velocity, so
-            small increases in Δv quickly become enormous increases in fuel.
+            Delta-v (Δv) is the total change in velocity a mission demands — every speed-up, slow-down, and course
+            change added together. It's the true currency of spaceflight: the rocket equation says the propellant needed
+            grows <em>exponentially</em> with the ratio of Δv to exhaust velocity, so small increases in Δv quickly
+            become enormous increases in fuel.
           </p>
           <p>
-            A brachistochrone spends the entire trip thrusting, so its Δv is roughly
-            twice the peak speed: accelerate to it, then shed all of it again. For
-            Earth → Mars at 1 g that's a few megameters per second — which is why the
-            Mission Summary quotes Δv in Mm/s, a unit no chemical rocket will ever
-            need. A Hohmann transfer to Mars, by comparison, costs about 6 km/s:
-            roughly a thousand times less.
+            A brachistochrone spends the entire trip thrusting, so its Δv is roughly twice the peak speed: accelerate
+            to it, then shed all of it again. For Earth → Mars at 1 g that's a few megameters per second — which is
+            why the Mission Summary quotes Δv in Mm/s, a unit no chemical rocket will ever need. A Hohmann transfer to
+            Mars, by comparison, costs about 6 km/s: roughly a thousand times less.
           </p>
           <p>
-            Chemical engines exhaust at ~4.5 km/s, so a Mm/s-class budget is hopeless
-            for them — the propellant would outweigh the observable universe. Constant
-            thrust at 1 g assumes something far beyond today's engines: fusion torches,
-            beamed power, or other drives that trade science fiction for arithmetic.
+            Chemical engines exhaust at ~4.5 km/s, so a Mm/s-class budget is impossible for them — the propellant would
+            be more than the mass of the observable universe. Constant thrust at 1 g assumes something far beyond
+            today's engines: fusion torches, beamed power, or other drives that trade science fiction for real math.
           </p>
         </div>
 
@@ -317,26 +297,21 @@
           <a href="#" class="modal-back">&#8592; Back</a>
           <h3>Time Dilation</h3>
           <p>
-            Special relativity says a moving clock runs slow. The factor is the
-            Lorentz γ = 1/√(1 − v²/c²): at everyday speeds it's indistinguishable
-            from 1, but as speed approaches light-speed it grows without bound. The
-            crew doesn't notice anything odd on board — their clocks, hearts, and
-            coffee all run normally. It's only when compared against clocks at home
-            that less time has passed for the ship.
+            Special relativity says a moving clock runs slow. The factor is the Lorentz γ = 1/√(1 − v²/c²): at
+            everyday speeds it's indistinguishable from 1, but as speed approaches light-speed it grows without bound.
+            The crew doesn't notice anything odd on board — their clocks and hearts run normally. It's only when
+            compared against clocks at home that less time has passed for the ship and passengers.
           </p>
           <p>
-            That's why every mission reports two durations. <em>Observer time</em> is
-            the trip as measured from the solar system at large; <em>ship time</em> is
-            what the crew's calendar shows on arrival. The Time Dilation panel shows
-            the peak γ and the time the crew "saved" by traveling fast.
+            Because of this, every mission reports two durations. <em>Observer time</em> is the trip as measured from
+            the solar system at large; <em>ship time</em> is what the crew's calendar shows on arrival. The Time
+            Dilation panel shows the peak γ and the time the crew "saved" by traveling fast.
           </p>
           <p>
-            For inner-planet hops the effect is tiny — γ ≈ 1.00002 on a 1 g Mars run,
-            saving the crew mere seconds. Push to the outer planets at high
-            acceleration and peak speed reaches several percent of c, where the
-            savings grow to hours. And this is no illusion: the crew genuinely ages
-            less. Fly far enough, fast enough, and you arrive measurably younger than
-            your twin who stayed home.
+            For inner-planet hops the effect is tiny — γ ≈ 1.00002 on a 1 g Mars run, saving the crew mere seconds.
+            Push to the outer planets at high acceleration and peak speed reaches several percent of c, where the
+            savings grow to hours. This is no illusion: the crew genuinely ages less. Fly far enough, fast enough,
+            and you arrive measurably younger than your daughter Murph who stayed home.
           </p>
         </div>
 
@@ -351,11 +326,11 @@
             faces the direction of travel.
           </p>
           <p>
-            So at the midpoint the engine cuts out, the ship rotates 180°, and the
+            At the midpoint the engine cuts out. The ship then rotates 180° and the
             burn resumes — now as deceleration. During the rotation the ship coasts
             and the crew is briefly weightless; before and after, the steady thrust
             presses them to the deck at a comfortable 1 g, like gravity. The animation
-            shows the whole sequence: plume forward, the slow tumble, plume aft.
+            shows the entire sequence: plume forward, the slow tumble, plume aft.
           </p>
           <p>
             When the mission caps peak speed, the profile gains a cruise phase:
