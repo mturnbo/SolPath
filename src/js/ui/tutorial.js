@@ -10,12 +10,12 @@ const TUTORIAL_STEPS = [
   {
     target: null,
     title: 'Welcome to SolPath',
-    text: 'Plan a constant-thrust trip between the planets. Here’s a 30-second tour of the controls.',
+    text: 'Plan a constant-thrust trip between the planets of our solar system. Here’s a 30-second tour of the controls.',
   },
   {
     target: '#section-mission',
     title: 'Mission Planner',
-    text: 'Pick an origin and destination, set the acceleration, and choose how to handle paths that skim the Sun.',
+    text: 'Pick origin and destination planets, set the acceleration, and choose how to handle paths that skim the Sun.',
   },
   {
     target: '#section-date',
