@@ -23,8 +23,8 @@ const TUTORIAL_STEPS = [
     text: 'Set when you leave. The planets move, so the geometry and travel time change with the date.',
   },
   {
-    target: '#section-animation',
-    title: 'Fly the Mission',
+    target: '#section-launch',
+    title: 'Launch the Mission',
     text: 'Play the flip-and-burn animation, change the speed, or drag the scrub bar to seek anywhere in the trip.',
   },
   {
