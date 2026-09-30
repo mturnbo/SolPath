@@ -1,11 +1,12 @@
 import { PLANETS, STAR } from './data/planets.js';
 import { toJ2000Century } from './physics/epoch.js';
 import { computeMission } from './physics/mission.js';
-import { createCamera, fitSolarSystem } from './render/camera.js';
+import { createCamera, fitSolarSystem, worldToScreen } from './render/camera.js';
 import { drawAllOrbits } from './render/orbits.js';
 import { drawAllPlanets, hitTestPlanet } from './render/planets.js';
 import { drawTrajectory, drawDepartureMarker, drawExclusionRing } from './render/trajectory.js';
-import { drawSpacecraft, spacecraftPosition, tauAtDistanceFraction } from './render/spacecraft.js';
+import { drawSpacecraft, drawDetailedRocket, spacecraftPosition } from './render/spacecraft.js';
+import { launchPhases, launchRocketLen } from './render/launch.js';
 import { drawStarfield } from './render/starfield.js';
 import { drawArrivalOverlay, triggerArrivalFlash, isFlashing } from './render/arrivalOverlay.js';
 import { drawDeparturePlaceholders } from './render/departurePlaceholders.js';
@@ -94,30 +95,7 @@ function getFlipProgress(tau, mission) {
 
 function followCamera(tau, w, h) {
   const pos = spacecraftPosition(tau, mission);
-
-  // Camera zooms out until a hold point, then stays at the far scale.  For
-  // detour missions the hold point is halfway along the leg *after* the detour
-  // waypoint; for direct missions it is the flip (start of deceleration).
-  let flipTau;
-  if (mission.isRerouted && !mission.isSmooth) {
-    // Waypoint stop: detour is the end of leg 1; hold halfway through leg 2.
-    const tauDetour = mission.leg1.coordTimeDays / mission.trajectory.coordTimeDays;
-    flipTau = tauDetour + (1 - tauDetour) / 2;
-  } else if (mission.isRerouted && mission.isSmooth) {
-    // Smooth arc: a single brachistochrone over the two-segment path, so map the
-    // point midway between the waypoint and the destination back to a time.
-    const dTotal = mission.leg1DistAU + mission.leg2DistAU;
-    const fW     = mission.leg1DistAU / dTotal;   // waypoint distance fraction
-    flipTau = tauAtDistanceFraction(mission.trajectory, dTotal, fW + (1 - fW) / 2);
-  } else {
-    const traj = mission.trajectory;
-    const T    = traj.coordTimeDays;
-    if (traj.isCapped) {
-      flipTau = (traj.accelTimeDays + traj.cruiseTimeDays) / T;
-    } else {
-      flipTau = (traj.accelTimeDays + (traj.flipTimeDays || 0)) / T;
-    }
-  }
+  const { farTau, closeEnd, diveEnd } = launchPhases(mission);
 
   // Near view: 0.5 AU minimum radius around the ship, scaled up for long trips.
   const displayRadius = Math.max(0.5, mission.distAU * 0.15);
@@ -127,8 +105,8 @@ function followCamera(tau, w, h) {
   const contextRadius = Math.max(displayRadius, mission.distAU * 0.7);
   const scaleFar      = Math.max(8, Math.min(w / (2 * contextRadius), scaleNear));
 
-  // Intro phase: first 20% of time-to-flip (capped at 15% of total animation).
-  const introTau = Math.max(0.02, Math.min(flipTau * 0.2, 0.15));
+  // Launch view: tighter than the near view so the firing rocket feels close.
+  const launchScale   = Math.min(cam.maxScale, scaleNear * 2.2);
 
   function lerp(a, b, t)   { return a + (b - a) * t; }
   function smooth(t)        { return t * t * (3 - 2 * t); }  // smoothstep
@@ -137,23 +115,28 @@ function followCamera(tau, w, h) {
 
   let targetScale, targetOX, targetOY;
 
-  if (tau <= introTau) {
-    // Phase 0: zoom in from overview and pan to center the ship.
-    const t = smooth(tau / introTau);
+  if (tau <= diveEnd) {
+    // Phase 0: dive in from the overview to the close-up, centering the ship.
+    const t = smooth(tau / diveEnd);
     const startScale = savedCam ? savedCam.scale   : cam.scale;
     const startOX    = savedCam ? savedCam.originX : cam.originX;
     const startOY    = savedCam ? savedCam.originY : cam.originY;
-    targetScale = lerp(startScale, scaleNear, t);
-    targetOX    = lerp(startOX,    shipOX(scaleNear), t);
-    targetOY    = lerp(startOY,    shipOY(scaleNear), t);
-  } else if (tau <= flipTau) {
-    // Phase 1: ship centered, smoothly zoom out toward the flip point.
-    const t = smooth((tau - introTau) / (flipTau - introTau));
-    targetScale = lerp(scaleNear, scaleFar, t);
+    targetScale = lerp(startScale, launchScale, t);
+    targetOX    = lerp(startOX,    shipOX(launchScale), t);
+    targetOY    = lerp(startOY,    shipOY(launchScale), t);
+  } else if (tau <= closeEnd) {
+    // Phase 1: hold the close-up while the rocket fires.
+    targetScale = launchScale;
+    targetOX    = shipOX(launchScale);
+    targetOY    = shipOY(launchScale);
+  } else if (tau <= farTau) {
+    // Phase 2: pull out to the strategic map view.
+    const t = smooth((tau - closeEnd) / (farTau - closeEnd));
+    targetScale = lerp(launchScale, scaleFar, t);
     targetOX    = shipOX(targetScale);
     targetOY    = shipOY(targetScale);
   } else {
-    // Phase 2: post-flip, ship centered at the far scale.
+    // Phase 3: hold the far scale.
     targetScale = scaleFar;
     targetOX    = shipOX(targetScale);
     targetOY    = shipOY(targetScale);
@@ -264,7 +247,23 @@ function draw(tau = 0) {
     const sc = getSpacecraftState(tau, mission);
     if (sc) {
       const phase = getThrustPhase(tau, mission);
-      drawSpacecraft(ctx, cam, sc.pos, sc.dir, phase, getFlipProgress(tau, mission));
+      const flip  = getFlipProgress(tau, mission);
+      const len   = (tau > 0 && tau < 1)
+        ? launchRocketLen(tau, w, h, launchPhases(mission))
+        : null;
+      if (len) {
+        // Close-up launch: draw the detailed rocket at the ship's screen position.
+        const baseAngle = Math.atan2(-sc.dir.ny, sc.dir.nx);
+        const eased     = flip * flip * (3 - 2 * flip);
+        const heading   = phase === 'flip'  ? baseAngle + eased * Math.PI
+                        : phase === 'decel' ? baseAngle + Math.PI
+                        :                     baseAngle;
+        const thrusting = phase === 'accel' || phase === 'decel';
+        const { sx, sy } = worldToScreen(cam, sc.pos.x, sc.pos.y);
+        drawDetailedRocket(ctx, sx, sy, len, heading, thrusting);
+      } else {
+        drawSpacecraft(ctx, cam, sc.pos, sc.dir, phase, flip);
+      }
     }
   }
 
