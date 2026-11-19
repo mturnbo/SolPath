@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SolPath 3D (prototype)</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #05060a; overflow: hidden; }
+    #view { position: fixed; inset: 0; }
+    #hint {
+      position: fixed; left: 12px; bottom: 12px; z-index: 2;
+      font: 12px system-ui, sans-serif; color: #8a93ad;
+    }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three/three.module.js",
+      "three/addons/": "./vendor/three/addons/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="view"></div>
+  <p id="hint">drag to rotate the view · scroll to zoom · right-drag to pan</p>
+  <script type="module">
+    import { initScene } from './src/js/render3d/scene.js';
+    import { toJ2000Century } from './src/js/physics/epoch.js';
+    import { computeMission3D } from './src/js/physics/mission3d.js';
+    import { PLANETS } from './src/js/data/planets.js';
+
+    const scene = initScene(document.getElementById('view'));
+    const byName = n => PLANETS.find(p => p.name === n);
+
+    // Sample mission for the prototype: Earth → Neptune (a reroute/detour case).
+    const departure = new Date('2071-07-23');
+    const mission = computeMission3D(byName('Earth'), byName('Neptune'), departure, 0.85, 'arc');
+    scene.setDate(toJ2000Century(departure));
+    scene.setMission(mission);
+    window.__scene = scene;
+    window.__mission = mission;
+
+    // Prototype: fly the ship along the trajectory on a loop.
+    let tau = 0;
+    function tick() {
+      tau = (tau + 0.0025) % 1;
+      scene.setShip(tau, mission);
+      requestAnimationFrame(tick);
+    }
+    tick();
+    window.__setTau = t => scene.setShip(t, mission);
+  </script>
+</body>
+</html>

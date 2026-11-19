@@ -34,7 +34,7 @@
 
     <main id="main">
       <section id="canvas-container">
-        <canvas id="solar-system"></canvas>
+        <div id="view-3d"></div>
         <div id="zoom-controls">
           <button class="btn-zoom" id="btn-zoom-in"  title="Zoom in">+</button>
           <button class="btn-zoom" id="btn-zoom-out" title="Zoom out">−</button>
@@ -209,7 +209,7 @@
 
         <h3>Tips</h3>
         <ul>
-          <li>Drag the canvas to pan; scroll or use the corner buttons to zoom.</li>
+          <li>Drag to rotate the view in 3D; scroll or use the corner buttons to zoom; right-drag to pan.</li>
           <li>Use the scrub bar to seek anywhere in the animation.</li>
           <li>The Share button copies a link that encodes your full mission setup.</li>
           <li>Export Log writes a CSV to a <em>logs</em> folder in your downloads.</li>
@@ -389,6 +389,14 @@
     </div>
   </div>
 
-  <script type="module" src="src/js/main.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three/three.module.js",
+      "three/addons/": "./vendor/three/addons/"
+    }
+  }
+  </script>
+  <script type="module" src="src/js/main3d.js"></script>
 </body>
 </html>

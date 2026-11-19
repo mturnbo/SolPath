@@ -76,7 +76,11 @@ export function planetPosition(planet, T) {
   const y = (Math.cos(omega) * Math.sin(Omega) + Math.sin(omega) * Math.cos(Omega) * Math.cos(I)) * xOrbit
           + (-Math.sin(omega) * Math.sin(Omega) + Math.cos(omega) * Math.cos(Omega) * Math.cos(I)) * yOrbit;
 
-  return { x, y };
+  // Out-of-ecliptic component (dropped by the original 2-D renderer).
+  const z = (Math.sin(omega) * Math.sin(I)) * xOrbit
+          + (Math.cos(omega) * Math.sin(I)) * yOrbit;
+
+  return { x, y, z };
 }
 
 /**
