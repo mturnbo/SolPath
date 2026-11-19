@@ -2,7 +2,7 @@
  
 ---
 
-## [Unreleased]
+## [1.3.0] — 2026-11-18
 
 ### PR 31 — Launch animation
 - Close-up launch sequence: dive in on the ship, show the engines firing, then pull out to the map view
