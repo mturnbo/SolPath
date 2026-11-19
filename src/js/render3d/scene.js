@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLANETS, STAR } from '../data/planets.js';
 import { planetPosition } from '../physics/kepler.js';
 import { orbitPoints } from '../render/orbits.js';
+import { SOLAR_EXCLUSION_AU } from '../physics/trajectory.js';
 
 // Exaggerated display radii (AU) so bodies are visible at solar-system scale.
 const DISPLAY_RADIUS = {
@@ -46,9 +47,10 @@ export function initScene(container) {
   scene.add(sunLight);
   scene.add(new THREE.AmbientLight(0x3a3f52, 0.6));
 
-  // ── Sun ──
+  // ── Sun ── kept smaller than the 0.35 AU exclusion zone so the zone reads as
+  // a shell around it (display radii are stylised, not to scale).
   const sun = new THREE.Mesh(
-    new THREE.SphereGeometry(1.4, 32, 32),
+    new THREE.SphereGeometry(0.2, 32, 32),
     new THREE.MeshBasicMaterial({ color: STAR.color }),
   );
   scene.add(sun);
@@ -87,6 +89,60 @@ export function initScene(container) {
     }
   }
 
+  // ── Solar exclusion zone (translucent sphere around Sol) ──
+  const exclusion = new THREE.Mesh(
+    new THREE.SphereGeometry(SOLAR_EXCLUSION_AU, 32, 24),
+    new THREE.MeshBasicMaterial({
+      color: 0xff5a3c, transparent: true, opacity: 0.1,
+      side: THREE.DoubleSide, depthWrite: false,
+    }),
+  );
+  scene.add(exclusion);
+
+  // ── Mission trajectory (rebuilt whenever a mission is set) ──
+  const missionGroup = new THREE.Group();
+  scene.add(missionGroup);
+
+  function disposeGroup(group) {
+    for (const child of group.children) {
+      child.geometry?.dispose();
+      child.material?.dispose();
+    }
+    group.clear();
+  }
+
+  function marker(pos, color, radius = 0.28) {
+    const m = new THREE.Mesh(
+      new THREE.SphereGeometry(radius, 16, 16),
+      new THREE.MeshBasicMaterial({ color }),
+    );
+    m.position.copy(toScene(pos));
+    return m;
+  }
+
+  /**
+   * Render a mission trajectory from a computeMission3D() result.
+   * Pass null to clear the current mission.
+   */
+  function setMission(mission) {
+    disposeGroup(missionGroup);
+    if (!mission) return;
+
+    const pts = mission.pathPoints.map(toScene);
+    const line = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({ color: 0x8fd0ff, transparent: true, opacity: 0.95 }),
+    );
+    missionGroup.add(line);
+
+    missionGroup.add(marker(mission.departurePos, 0x5effa0));  // departure — green
+    missionGroup.add(marker(mission.arrivalPos, 0x5ec8ff));    // arrival — cyan
+    if (mission.midpointPos) missionGroup.add(marker(mission.midpointPos, 0xffffff, 0.2)); // flip
+    if (mission.isRerouted && mission.waypoint) {
+      missionGroup.add(marker(mission.waypoint, 0xffc24d, 0.22));  // detour waypoint — amber
+    }
+  }
+
   function resize() {
     const w = container.clientWidth, h = container.clientHeight;
     camera.aspect = w / h;
@@ -108,5 +164,5 @@ export function initScene(container) {
     renderer.domElement.remove();
   }
 
-  return { setDate, resize, dispose, scene, camera, controls };
+  return { setDate, setMission, resize, dispose, scene, camera, controls };
 }

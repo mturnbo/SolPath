@@ -27,9 +27,19 @@
   <script type="module">
     import { initScene } from './src/js/render3d/scene.js';
     import { toJ2000Century } from './src/js/physics/epoch.js';
+    import { computeMission3D } from './src/js/physics/mission3d.js';
+    import { PLANETS } from './src/js/data/planets.js';
+
     const scene = initScene(document.getElementById('view'));
-    scene.setDate(toJ2000Century(new Date()));
+    const byName = n => PLANETS.find(p => p.name === n);
+
+    // Sample mission for the prototype: Earth → Neptune (a reroute/detour case).
+    const departure = new Date('2071-07-23');
+    const mission = computeMission3D(byName('Earth'), byName('Neptune'), departure, 0.85, 'arc');
+    scene.setDate(toJ2000Century(departure));
+    scene.setMission(mission);
     window.__scene = scene;
+    window.__mission = mission;
   </script>
 </body>
 </html>

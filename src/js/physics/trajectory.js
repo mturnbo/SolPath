@@ -295,6 +295,81 @@ export function findSolarDetour(A, B, R) {
   return best.W;
 }
 
+// ── 3-D geometry (for the 3D renderer) ────────────────────────────────────────
+//
+// The solar exclusion zone is a sphere of radius R around Sol. A detour is only
+// ever needed in the plane that contains the departure point, the arrival point
+// and Sol: dodging out of that plane is never shorter. So the 3D detour reduces
+// to the existing 2D problem solved in that plane, then mapped back to 3D.
+
+/** Euclidean distance (AU) between two heliocentric XYZ positions. */
+export function distance3D(a, b) {
+  return Math.hypot(b.x - a.x, b.y - a.y, (b.z ?? 0) - (a.z ?? 0));
+}
+
+/**
+ * Closest approach of the 3D segment A→B to Sol (origin).
+ * @returns {{ t: number, distAU: number }} parameter t ∈ [0,1] and distance (AU)
+ */
+export function closestSolarApproach3D(A, B) {
+  const az = A.z ?? 0, bz = B.z ?? 0;
+  const dx = B.x - A.x, dy = B.y - A.y, dz = bz - az;
+  const lenSq = dx * dx + dy * dy + dz * dz;
+  if (lenSq === 0) return { t: 0, distAU: Math.hypot(A.x, A.y, az) };
+  const t = Math.max(0, Math.min(1, -(A.x * dx + A.y * dy + az * dz) / lenSq));
+  return { t, distAU: Math.hypot(A.x + t * dx, A.y + t * dy, az + t * dz) };
+}
+
+function dot3(a, b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+function norm3(v) {
+  const m = Math.hypot(v.x, v.y, v.z);
+  return m === 0 ? { x: 0, y: 0, z: 0 } : { x: v.x / m, y: v.y / m, z: v.z / m };
+}
+
+/**
+ * Orthonormal basis (e1, e2) spanning the plane through A, B and Sol (origin).
+ * e1 points along A. When A, B and Sol are collinear the plane is ambiguous, so
+ * tilt the second axis toward the ecliptic normal (fallback to the X axis).
+ */
+function planeBasis(A, B) {
+  const a = { x: A.x, y: A.y, z: A.z ?? 0 };
+  const b = { x: B.x, y: B.y, z: B.z ?? 0 };
+  const e1 = norm3(a);
+  let perp = { x: b.x - dot3(b, e1) * e1.x,
+               y: b.y - dot3(b, e1) * e1.y,
+               z: b.z - dot3(b, e1) * e1.z };
+  if (Math.hypot(perp.x, perp.y, perp.z) < 1e-9) {
+    // A and B are collinear through Sol: pick an out-of-line axis.
+    const ref = Math.abs(e1.z) < 0.9 ? { x: 0, y: 0, z: 1 } : { x: 1, y: 0, z: 0 };
+    perp = { x: ref.x - dot3(ref, e1) * e1.x,
+             y: ref.y - dot3(ref, e1) * e1.y,
+             z: ref.z - dot3(ref, e1) * e1.z };
+  }
+  return { e1, e2: norm3(perp) };
+}
+
+/**
+ * 3D analogue of findSolarDetour: find the time-optimal waypoint on the solar
+ * exclusion sphere for a path that would otherwise pass too close to Sol.
+ * Solves the 2D problem in the A–B–Sol plane and maps the waypoint back to 3D.
+ *
+ * @param {{x,y,z}} A  @param {{x,y,z}} B  @param {number} R  exclusion radius (AU)
+ * @returns {{ x: number, y: number, z: number }} waypoint in AU
+ */
+export function findSolarDetour3D(A, B, R) {
+  const { e1, e2 } = planeBasis(A, B);
+  const a = { x: A.x, y: A.y, z: A.z ?? 0 };
+  const b = { x: B.x, y: B.y, z: B.z ?? 0 };
+  const A2 = { x: dot3(a, e1), y: dot3(a, e2) };
+  const B2 = { x: dot3(b, e1), y: dot3(b, e2) };
+  const W2 = findSolarDetour(A2, B2, R);
+  return {
+    x: W2.x * e1.x + W2.y * e2.x,
+    y: W2.x * e1.y + W2.y * e2.y,
+    z: W2.x * e1.z + W2.y * e2.z,
+  };
+}
+
 // ── Formatting helpers ────────────────────────────────────────────────────────
 
 /**
