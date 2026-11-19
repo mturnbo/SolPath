@@ -99,6 +99,16 @@ body {
   cursor: crosshair;
 }
 
+#view-3d {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+#view-3d canvas { display: block; }
+
 /* ── Control panel ── */
 
 #control-panel {

@@ -34,7 +34,7 @@
 
     <main id="main">
       <section id="canvas-container">
-        <canvas id="solar-system"></canvas>
+        <div id="view-3d"></div>
         <div id="zoom-controls">
           <button class="btn-zoom" id="btn-zoom-in"  title="Zoom in">+</button>
           <button class="btn-zoom" id="btn-zoom-out" title="Zoom out">−</button>
@@ -389,6 +389,14 @@
     </div>
   </div>
 
-  <script type="module" src="src/js/main.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three/three.module.js",
+      "three/addons/": "./vendor/three/addons/"
+    }
+  }
+  </script>
+  <script type="module" src="src/js/main3d.js"></script>
 </body>
 </html>

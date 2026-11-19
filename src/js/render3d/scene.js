@@ -263,8 +263,51 @@ export function initScene(container) {
 
   function clearShip() { ship.visible = false; }
 
+  // ── Planet picking + hover highlight ──
+  const raycaster = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+  const meshByPlanet = new Map(bodies.map(b => [b.planet, b.mesh]));
+  const planetByMesh = new Map(bodies.map(b => [b.mesh, b.planet]));
+  let hovered = null;
+
+  /** Pick a planet from normalized device coords (x,y ∈ [-1,1]); null if none. */
+  function pick(nx, ny) {
+    ndc.set(nx, ny);
+    raycaster.setFromCamera(ndc, camera);
+    const hit = raycaster.intersectObjects([...meshByPlanet.values()], false)[0];
+    return hit ? planetByMesh.get(hit.object) : null;
+  }
+
+  /** Highlight a planet (emissive glow) or clear with null. */
+  function setHovered(planet) {
+    if (planet === hovered) return;
+    if (hovered) meshByPlanet.get(hovered).material.emissive.setHex(0x000000);
+    hovered = planet;
+    if (hovered) meshByPlanet.get(hovered).material.emissive.set(hovered.color);
+  }
+
+  // ── Camera helpers ──
+  const DEFAULT_CAM = new THREE.Vector3(0, 45, 65);
+  const _dir = new THREE.Vector3();
+
+  /** Reset to the default three-quarter overview. */
+  function frameOverview() {
+    controls.target.set(0, 0, 0);
+    camera.position.copy(DEFAULT_CAM);
+    controls.update();
+  }
+
+  /** Dolly the camera toward (factor<1) or away from (factor>1) the target. */
+  function zoomBy(factor) {
+    _dir.subVectors(camera.position, controls.target);
+    const d = THREE.MathUtils.clamp(_dir.length() * factor, controls.minDistance, controls.maxDistance);
+    camera.position.copy(controls.target).add(_dir.setLength(d));
+    controls.update();
+  }
+
   return {
     setDate, setMission, setShip, clearShip, rocketSprite,
+    pick, setHovered, frameOverview, zoomBy,
     resize, dispose, scene, camera, controls, toScene,
   };
 }
