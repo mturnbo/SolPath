@@ -2,6 +2,16 @@
  
 ---
 
+## [1.4.0] — 2026-11-19
+
+### PR 32 — 3D interface
+- Rebuilt the map as a real 3D scene (Three.js/WebGL): drag to rotate the viewing plane, scroll to zoom, right-drag to pan
+- Planets, orbits, and trajectories now show their true out-of-ecliptic positions (inclinations), with lit planet spheres and a Sun corona
+- Solar exclusion zone drawn as a translucent sphere; detours solved in the departure–arrival–Sun plane and mapped back to 3D
+- Spacecraft shown as a velocity-oriented marker on the map and the detailed rocket as a camera-facing billboard during the launch close-up
+- Planet labels, hover highlighting (raycast), and corner buttons repurposed to dolly/reset the 3D camera
+- Three.js vendored into the repo (`vendor/three`); the mission panel, date picker, summary, relativity, animation, scrub, permalink, export log, About, and tutorial all carry over unchanged
+
 ## [1.3.0] — 2026-11-18
 
 ### PR 31 — Launch animation
