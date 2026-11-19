@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SolPath 3D (prototype)</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #05060a; overflow: hidden; }
+    #view { position: fixed; inset: 0; }
+    #hint {
+      position: fixed; left: 12px; bottom: 12px; z-index: 2;
+      font: 12px system-ui, sans-serif; color: #8a93ad;
+    }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="view"></div>
+  <p id="hint">drag to rotate the view · scroll to zoom · right-drag to pan</p>
+  <script type="module">
+    import { initScene } from './src/js/render3d/scene.js';
+    import { toJ2000Century } from './src/js/physics/epoch.js';
+    const scene = initScene(document.getElementById('view'));
+    scene.setDate(toJ2000Century(new Date()));
+    window.__scene = scene;
+  </script>
+</body>
+</html>

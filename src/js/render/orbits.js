@@ -32,6 +32,7 @@ export function orbitPoints(planet, T) {
   const cosOmega = Math.cos(omega), sinOmega = Math.sin(omega);
   const cosOmegaU = Math.cos(Omega), sinOmegaU = Math.sin(Omega);
   const cosI = Math.cos(I);
+  const sinI = Math.sin(I);
 
   const points = [];
   for (let k = 0; k <= SEGMENTS; k++) {
@@ -46,7 +47,9 @@ export function orbitPoints(planet, T) {
     const y = (cosOmega * sinOmegaU + sinOmega * cosOmegaU * cosI) * xOrb
             + (-sinOmega * sinOmegaU + cosOmega * cosOmegaU * cosI) * yOrb;
 
-    points.push({ x, y });
+    const z = (sinOmega * sinI) * xOrb + (cosOmega * sinI) * yOrb;
+
+    points.push({ x, y, z });
   }
   return points;
 }
