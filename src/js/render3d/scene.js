@@ -36,6 +36,35 @@ function makeGlowTexture() {
   return texture;
 }
 
+/** Constant-size text label as a camera-facing sprite. */
+function makeTextSprite(text, color = '#c8d2e6') {
+  const pad = 8, font = 48;
+  const measure = document.createElement('canvas').getContext('2d');
+  measure.font = `${font}px system-ui, sans-serif`;
+  const w = Math.ceil(measure.measureText(text).width) + pad * 2;
+  const h = font + pad * 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.font = `${font}px system-ui, sans-serif`;
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillText(text, pad + 1, h / 2 + 1);
+  ctx.fillStyle = color;
+  ctx.fillText(text, pad, h / 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: texture, transparent: true, depthWrite: false, sizeAttenuation: false,
+  }));
+  // Constant screen size; width tracks the label's aspect ratio.
+  const sy = 0.026;
+  sprite.scale.set(sy * (w / h), sy, 1);
+  sprite.center.set(0.5, 0);   // anchor at the label's bottom-centre
+  return sprite;
+}
+
 /**
  * Render the detailed rocket art to a canvas texture and wrap it in a
  * camera-facing sprite (nose up). The launch animation scales this up for the
@@ -96,6 +125,14 @@ export function initScene(container) {
   );
   scene.add(sun);
 
+  // Soft additive corona so the small Sun still reads as a star.
+  const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeGlowTexture(), color: STAR.color,
+    transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending,
+  }));
+  sunGlow.scale.setScalar(2.2);
+  scene.add(sunGlow);
+
   // ── Starfield ──
   const starGeo = new THREE.BufferGeometry();
   const starCount = 2500, starPos = new Float32Array(starCount * 3);
@@ -119,12 +156,19 @@ export function initScene(container) {
       new THREE.LineBasicMaterial({ color: planet.color, transparent: true, opacity: 0.35 }),
     );
     scene.add(orbit);
-    return { planet, mesh, orbit };
+
+    const label = makeTextSprite(planet.name);
+    scene.add(label);
+    return { planet, mesh, orbit, label };
   });
 
+  const LABEL_OFFSET = new THREE.Vector3(0, 0.45, 0);  // sit the label above the body
+
   function setDate(T) {
-    for (const { planet, mesh, orbit } of bodies) {
-      mesh.position.copy(toScene(planetPosition(planet, T)));
+    for (const { planet, mesh, orbit, label } of bodies) {
+      const p = toScene(planetPosition(planet, T));
+      mesh.position.copy(p);
+      label.position.copy(p).add(LABEL_OFFSET);
       const pts = orbitPoints(planet, T).map(toScene);
       orbit.geometry.setFromPoints(pts);
     }
@@ -263,6 +307,11 @@ export function initScene(container) {
 
   function clearShip() { ship.visible = false; }
 
+  /** Show or hide all planet labels (hidden during the launch close-up). */
+  function showLabels(on) {
+    for (const { label } of bodies) label.visible = on;
+  }
+
   // ── Planet picking + hover highlight ──
   const raycaster = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
@@ -306,7 +355,7 @@ export function initScene(container) {
   }
 
   return {
-    setDate, setMission, setShip, clearShip, rocketSprite,
+    setDate, setMission, setShip, clearShip, showLabels, rocketSprite,
     pick, setHovered, frameOverview, zoomBy,
     resize, dispose, scene, camera, controls, toScene,
   };

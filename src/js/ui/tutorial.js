@@ -30,7 +30,7 @@ const TUTORIAL_STEPS = [
   {
     target: '#canvas-container',
     title: 'The Map',
-    text: 'Drag to pan and scroll to zoom. The ship follows the trajectory, flipping at the midpoint to decelerate.',
+    text: 'Drag to rotate the view in 3D, scroll to zoom, right-drag to pan. The ship follows the trajectory, flipping at the midpoint to decelerate.',
   },
   {
     target: '#section-info',

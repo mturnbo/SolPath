@@ -87,9 +87,11 @@ function draw(tau = 0) {
 
   if (tau > 0 && tau < 1) {
     scene.controls.enabled = !controlsLocked;
+    scene.showLabels(tau > launchPhases(mission).detailEnd);  // hide during the close-up
     followCamera(tau);
   } else {
     scene.controls.enabled = true;
+    scene.showLabels(true);
     scene.clearShip();
   }
 }
