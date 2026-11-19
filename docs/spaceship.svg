@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 490" width="220" height="490" role="img" aria-labelledby="ttl desc">
+  <title id="ttl">SolPath spacecraft</title>
+  <desc id="desc">Metallic constant-thrust ship: a large faceted front module with a cockpit window, a cylindrical mid-section with a lattice truss, and a three-nozzle engine cluster firing a blue plume.</desc>
+  <defs>
+    <linearGradient id="metal" x1="0" y1="0.5" x2="1" y2="0.5">
+      <stop offset="0" stop-color="#20232b"/>
+      <stop offset="0.13" stop-color="#4e545f"/>
+      <stop offset="0.30" stop-color="#bcc5d1"/>
+      <stop offset="0.42" stop-color="#eef2f8"/>
+      <stop offset="0.55" stop-color="#a6aeba"/>
+      <stop offset="0.74" stop-color="#565d68"/>
+      <stop offset="1" stop-color="#1b1e25"/>
+    </linearGradient>
+    <linearGradient id="plume" gradientUnits="userSpaceOnUse" x1="110" y1="320" x2="110" y2="470">
+      <stop offset="0" stop-color="#d2ebff" stop-opacity="0.95"/>
+      <stop offset="0.18" stop-color="#96cdff" stop-opacity="0.8"/>
+      <stop offset="0.55" stop-color="#5a96ff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#466eff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="core" gradientUnits="userSpaceOnUse" x1="110" y1="320" x2="110" y2="387.5">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#d2ebff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="win" gradientUnits="userSpaceOnUse" x1="110" y1="45.6" x2="110" y2="56.4">
+      <stop offset="0" stop-color="#78c8ff" stop-opacity="0.15"/>
+      <stop offset="0.5" stop-color="#96dcff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#5a96e6" stop-opacity="0.2"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="220" height="490" rx="12" fill="#0a0a12"/>
+
+  <polygon points="84.8,320 135.2,320 110,470" fill="url(#plume)"/>
+  <polygon points="99.2,320 120.8,320 110,387.5" fill="url(#core)"/>
+
+  <g>
+    <polygon points="77.7,296 97.7,296 104.3,320 71.1,320" fill="url(#metal)"/>
+    <polygon points="100,296 120,296 126.6,320 93.4,320" fill="url(#metal)"/>
+    <polygon points="122.3,296 142.3,296 148.9,320 115.7,320" fill="url(#metal)"/>
+    <ellipse cx="87.7" cy="320" rx="13.3" ry="3.24" fill="#0a0c12" fill-opacity="0.85"/>
+    <ellipse cx="110" cy="320" rx="13.3" ry="3.24" fill="#0a0c12" fill-opacity="0.85"/>
+    <ellipse cx="132.3" cy="320" rx="13.3" ry="3.24" fill="#0a0c12" fill-opacity="0.85"/>
+  </g>
+
+  <polygon points="82,260 138,260 147.8,296 72.2,296" fill="url(#metal)"/>
+
+  <rect x="100.2" y="218" width="19.6" height="42" fill="#2a2e37"/>
+  <path d="M82,218 L138,228.5 M138,218 L82,228.5 M82,228.5 L138,239 M138,228.5 L82,239 M82,239 L138,249.5 M138,239 L82,249.5 M82,249.5 L138,260 M138,249.5 L82,260 M82,218 L82,260 M138,218 L138,260"
+        stroke="#9aa3b0" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+
+  <rect x="74" y="110" width="72" height="108" rx="4" fill="url(#metal)"/>
+  <path d="M74,137 L146,137 M74,164 L146,164 M74,191 L146,191 M93.8,110 L93.8,218 M126.2,110 L126.2,218"
+        stroke="#12141a" stroke-opacity="0.6" stroke-width="1.8" fill="none"/>
+
+  <rect x="142.4" y="140.2" width="6" height="42" rx="1.8" fill="#6b727d"/>
+  <rect x="50" y="154.4" width="27" height="30" rx="1.8" fill="url(#metal)"/>
+
+  <polygon points="74,110 146,110 161.2,89 58.8,89" fill="url(#metal)"/>
+
+  <polygon points="55.6,89 164.4,89 174,64.85 148.4,25.12 127.9,20 92.1,20 71.6,25.12 46,64.85"
+           fill="url(#metal)" stroke="#0f1116" stroke-opacity="0.7" stroke-width="1.8" stroke-linejoin="round"/>
+
+  <rect x="70.3" y="45.6" width="79.4" height="10.8" rx="4.5" fill="url(#win)"/>
+  <rect x="84.4" y="74" width="21.9" height="11.4" rx="2.7" fill="#141820" fill-opacity="0.55"/>
+  <rect x="113.2" y="74" width="21.9" height="11.4" rx="2.7" fill="#141820" fill-opacity="0.55"/>
+</svg>

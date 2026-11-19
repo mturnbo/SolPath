@@ -2,6 +2,13 @@
  
 ---
 
+## [Unreleased]
+
+### PR 31 — Launch animation
+- Close-up launch sequence: dive in on the ship, show the engines firing, then pull out to the map view
+- New detailed metallic rocket (large front module, cylindrical mid-section, engine cluster) drawn at ~1/8 of the view, handing off to the small map sprite as the camera zooms out
+- Reference SVG of the ship added in `docs/spaceship.svg`
+
 ## [1.2.1] — 2026-07-24
 
 ### PR 30 — Mission log export
