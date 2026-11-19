@@ -40,6 +40,16 @@
     scene.setMission(mission);
     window.__scene = scene;
     window.__mission = mission;
+
+    // Prototype: fly the ship along the trajectory on a loop.
+    let tau = 0;
+    function tick() {
+      tau = (tau + 0.0025) % 1;
+      scene.setShip(tau, mission);
+      requestAnimationFrame(tick);
+    }
+    tick();
+    window.__setTau = t => scene.setShip(t, mission);
   </script>
 </body>
 </html>

@@ -51,6 +51,45 @@ export function spacecraftPosition(tau, mission) {
   };
 }
 
+// ── 3D ship position (for the WebGL renderer) ─────────────────────────────────
+
+function lerp3(A, B, f) {
+  return {
+    x: A.x + (B.x - A.x) * f,
+    y: A.y + (B.y - A.y) * f,
+    z: (A.z ?? 0) + ((B.z ?? 0) - (A.z ?? 0)) * f,
+  };
+}
+
+/**
+ * 3D counterpart of spacecraftPosition: the ship's heliocentric XYZ position at
+ * normalized time tau ∈ [0,1] for a computeMission3D() result. Reuses the shared
+ * timing profile (positionFraction) and interpolates the 3D path legs.
+ */
+export function spacecraftPosition3D(tau, mission) {
+  if (!mission.isRerouted) {
+    const f = positionFraction(tau, mission.trajectory, mission.distAU);
+    return lerp3(mission.departurePos, mission.arrivalPos, f);
+  }
+
+  if (mission.isSmooth) {
+    const { departurePos, waypoint, arrivalPos, leg1DistAU, leg2DistAU, trajectory } = mission;
+    const d_total = leg1DistAU + leg2DistAU;
+    const dist = positionFraction(tau, trajectory, d_total) * d_total;
+    return dist <= leg1DistAU
+      ? lerp3(departurePos, waypoint, dist / leg1DistAU)
+      : lerp3(waypoint, arrivalPos, (dist - leg1DistAU) / leg2DistAU);
+  }
+
+  const { departurePos, waypoint, arrivalPos, leg1, leg2, leg1DistAU, leg2DistAU } = mission;
+  const totalTime = leg1.coordTimeDays + leg2.coordTimeDays;
+  const tau1 = leg1.coordTimeDays / totalTime;
+  if (tau <= tau1) {
+    return lerp3(departurePos, waypoint, positionFraction(tau / tau1, leg1, leg1DistAU));
+  }
+  return lerp3(waypoint, arrivalPos, positionFraction((tau - tau1) / (1 - tau1), leg2, leg2DistAU));
+}
+
 /**
  * Map normalized time (0–1) to normalized distance (0–1) along one leg.
  * Handles three phases: accel (quadratic) → flip coast (linear) → decel (quadratic).
@@ -58,7 +97,7 @@ export function spacecraftPosition(tau, mission) {
  * cruise formula is unchanged — only the rendering layer needs to know when the
  * flip occurs.
  */
-function positionFraction(tau, trajectory, distAU) {
+export function positionFraction(tau, trajectory, distAU) {
   const T  = trajectory.coordTimeDays;
   const α  = trajectory.accelTimeDays / T;
   const fA = trajectory.accelDistAU   / distAU;

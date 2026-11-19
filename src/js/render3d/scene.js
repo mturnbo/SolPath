@@ -4,6 +4,7 @@ import { PLANETS, STAR } from '../data/planets.js';
 import { planetPosition } from '../physics/kepler.js';
 import { orbitPoints } from '../render/orbits.js';
 import { SOLAR_EXCLUSION_AU } from '../physics/trajectory.js';
+import { spacecraftPosition3D, drawDetailedRocket } from '../render/spacecraft.js';
 
 // Exaggerated display radii (AU) so bodies are visible at solar-system scale.
 const DISPLAY_RADIUS = {
@@ -15,6 +16,46 @@ const DISPLAY_RADIUS = {
 // scene space with Y up, so inclinations rise vertically like an orrery.
 function toScene({ x, y, z }) {
   return new THREE.Vector3(x, z, y);
+}
+
+/** Soft radial-gradient texture for glow sprites (an untextured sprite is a
+ * flat opaque quad, so the halo needs a real alpha map). */
+function makeGlowTexture() {
+  const S = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = S; canvas.height = S;
+  const ctx = canvas.getContext('2d');
+  const g = ctx.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+  g.addColorStop(0,    'rgba(255,255,255,1)');
+  g.addColorStop(0.35, 'rgba(255,255,255,0.5)');
+  g.addColorStop(1,    'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, S, S);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+/**
+ * Render the detailed rocket art to a canvas texture and wrap it in a
+ * camera-facing sprite (nose up). The launch animation scales this up for the
+ * close-up; on the map it stays hidden in favour of the cone marker.
+ */
+function makeRocketSprite() {
+  const W = 256, H = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  // Draw nose-up, body spanning most of the canvas height.
+  drawDetailedRocket(ctx, W / 2, H * 0.44, H * 0.82, -Math.PI / 2, true);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: texture, transparent: true, depthWrite: false,
+  }));
+  sprite.scale.set(1 * (W / H), 1, 1);  // preserve aspect; caller scales up
+  return sprite;
 }
 
 /**
@@ -164,5 +205,66 @@ export function initScene(container) {
     renderer.domElement.remove();
   }
 
-  return { setDate, setMission, resize, dispose, scene, camera, controls };
+  // ── Spacecraft ──
+  // Map view: a small cone marker pointing along the direction of travel, plus a
+  // glow. Close-up: a camera-facing billboard of the detailed rocket (same art as
+  // the 2D launch view), rendered once to a canvas texture.
+  const ship = new THREE.Group();
+  ship.visible = false;
+  scene.add(ship);
+
+  const shipCone = new THREE.Mesh(
+    new THREE.ConeGeometry(0.16, 0.5, 20),
+    new THREE.MeshBasicMaterial({ color: 0xeaf4ff }),
+  );
+  ship.add(shipCone);
+  const shipGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeGlowTexture(), color: 0x9cccff,
+    transparent: true, opacity: 0.6, depthWrite: false,
+  }));
+  shipGlow.scale.setScalar(0.9);
+  ship.add(shipGlow);
+
+  const rocketSprite = makeRocketSprite();
+  rocketSprite.visible = false;
+  ship.add(rocketSprite);
+
+  const CONE_UP = new THREE.Vector3(0, 1, 0);
+  const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), tangent = new THREE.Vector3();
+
+  /**
+   * Place the ship at normalized time tau along a mission.
+   * opts.closeup renders the rocket billboard instead of the cone marker.
+   */
+  function setShip(tau, mission, opts = {}) {
+    if (!mission) { ship.visible = false; return; }
+    ship.visible = true;
+
+    const t = Math.min(Math.max(tau, 0), 1);
+    const here = spacecraftPosition3D(t, mission);
+    tmpA.copy(toScene(here));
+    ship.position.copy(tmpA);
+
+    // Direction of travel from a short finite step along the path.
+    const dt = 1e-3;
+    const other = spacecraftPosition3D(t + dt <= 1 ? t + dt : t - dt, mission);
+    tmpB.copy(toScene(other));
+    tangent.subVectors(t + dt <= 1 ? tmpB : tmpA, t + dt <= 1 ? tmpA : tmpB);
+    if (tangent.lengthSq() > 1e-12) {
+      tangent.normalize();
+      shipCone.quaternion.setFromUnitVectors(CONE_UP, tangent);
+    }
+
+    const closeup = !!opts.closeup;
+    rocketSprite.visible = closeup;
+    shipCone.visible = !closeup;
+    shipGlow.visible = !closeup;
+  }
+
+  function clearShip() { ship.visible = false; }
+
+  return {
+    setDate, setMission, setShip, clearShip, rocketSprite,
+    resize, dispose, scene, camera, controls, toScene,
+  };
 }
